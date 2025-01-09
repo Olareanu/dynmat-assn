@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "dynmat-assn"
+version = "0.1.0"
+description = ""
+authors = ["Olareanu Alexandru <47012278+Olareanu@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+abqpy = "^2025.7.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
