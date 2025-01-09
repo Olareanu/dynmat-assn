@@ -68,9 +68,7 @@ def EllipticalHole():
     s1.setPrimaryObject(option=SUPERIMPOSE)
     p = mdb.models['Model-1'].parts['Sheet']
     p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=119.953,
-                                                    farPlane=261.412, width=207.388, height=92.594, cameraPosition=(
-            -225.546, 105.143, 62.3889), cameraTarget=(-21.0589, 30.217, 62.3889))
+
     s1.ConstructionLine(point1=(-50.0, 21.5478615609292), angle=0.0)
     s1.CoincidentConstraint(entity1=v[3], entity2=g[6], addUndoState=False)
     s1.HorizontalConstraint(entity=g[6], addUndoState=False)
@@ -470,12 +468,10 @@ def Sheet():
     p.BaseSolidExtrude(sketch=s1, depth=100.0)
     s1.unsetPrimaryObject()
     p = mdb.models['Model-1'].parts['Sheet']
-    session.viewports['Viewport: 1'].setValues(displayedObject=p)
     del mdb.models['Model-1'].sketches['__profile__']
 
 
 def BottomSupport():
-    p1 = mdb.models['Model-1'].parts['Sheet']
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
                                                 sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
@@ -543,29 +539,19 @@ def BottomSupport():
     del mdb.models['Model-1'].sketches['__edit__']
     p = mdb.models['Model-1'].parts['Support_bottom']
     p.regenerate()
-    # shell creation & faces deleted
-    p = mdb.models['Model-1'].parts['Support_bottom']
-    e = p.edges
-    p.Round(radius=5.0, edgeList=(e[7], e[9], e[10], e[11]))
-    p = mdb.models['Model-1'].parts['Support_bottom']
-    c2 = p.cells
-    p.RemoveCells(cellList=c2[0:1])
 
     p = mdb.models['Model-1'].parts['Support_bottom']
-    f1 = p.faces
-    p.RemoveFaces(faceList=f1[8:10], deleteCells=False)
+    e = p.edges
+    p.Round(radius=10.0, edgeList=(e[9], e[11]))
+
+
+    p = mdb.models['Model-1'].parts['Support_bottom']
+    f = p.faces
+    p.RemoveFaces(faceList=f[3:5] + f[7:8], deleteCells=False)
 
 
 def TopSupport():
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=314.371,
-                                                    farPlane=506.514, width=400.883, height=179.006, cameraPosition=(
-            -75.4593, -31.56, 457.713), cameraUpVector=(0.0292733, 0.976887,
-                                                        -0.211755), cameraTarget=(-48.6156, 20.1337, 47.1657),
-                                                    viewOffsetX=63.7363, viewOffsetY=-11.9984)
-    p1 = mdb.models['Model-1'].parts['indenter_cylindrical']
-    session.viewports['Viewport: 1'].setValues(displayedObject=p1)
-    s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
-                                                sheetSize=200.0)
+    s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
     s.setPrimaryObject(option=STANDALONE)
     s.ConstructionLine(point1=(0.0, 3.75), angle=90.0)
@@ -575,17 +561,8 @@ def TopSupport():
     s.FixedConstraint(entity=g[3])
     s.FixedConstraint(entity=g[2])
     s.CircleByCenterPerimeter(center=(-5.0, -12.5), point1=(-15.0, -3.75))
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=167.836,
-                                                    farPlane=209.288, width=257.173, height=114.835, cameraPosition=(
-            19.1311, -9.06924, 188.562), cameraTarget=(19.1311, -9.06924, 0))
     s.Line(point1=(-17.5, -7.99306090567006), point2=(-35.0, -43.75))
     s.CoincidentConstraint(entity1=v[2], entity2=g[4], addUndoState=False)
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=171.347,
-                                                    farPlane=205.777, width=188.74, height=84.278,
-                                                    cameraPosition=(22.3448,
-                                                                    -15.1344,
-                                                                    188.562),
-                                                    cameraTarget=(22.3448, -15.1344, 0))
     s.dragEntity(entity=v[0], points=((-5.0, -12.5), (-5.0, -12.5), (-3.75,
                                                                      -13.75), (-2.5, -15.0), (-1.25, -15.0),
                                       (-1.25, -16.25), (0.0,
@@ -596,17 +573,10 @@ def TopSupport():
     s.dragEntity(entity=v[0], points=((0.0, -16.25), (0.0, -16.25), (-3.75,
                                                                      -16.25)))
     s.CoincidentConstraint(entity1=v[0], entity2=g[2])
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=187.872,
-                                                    farPlane=189.251, width=7.72069, height=3.44752, cameraPosition=(
-            -5.81396, -11.0709, 188.562), cameraTarget=(-5.81396, -11.0709, 0))
+
     s.CoincidentConstraint(entity1=v[2], entity2=v[1])
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=183.311,
-                                                    farPlane=193.813, width=65.1585, height=29.0952, cameraPosition=(
-            6.73027, -15.4888, 188.562), cameraTarget=(6.73027, -15.4888, 0))
     s.TangentConstraint(entity1=g[5], entity2=g[4])
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=176.074,
-                                                    farPlane=201.049, width=136.911, height=61.1346, cameraPosition=(
-            18.2242, -26.168, 188.562), cameraTarget=(18.2242, -26.168, 0))
+
     s.autoTrimCurve(curve1=g[4], point1=(-7.10293197631836, -28.0268173217773))
     s.autoTrimCurve(curve1=g[6], point1=(10.0637359619141, -30.7305698394775))
     s.dragEntity(entity=v[2], points=((-6.78363465371214, -10.3143196780019), (
@@ -628,9 +598,7 @@ def TopSupport():
     d[3].setValues(textPoint=(5.0, -1.25))
     d[1].setValues(textPoint=(8.75, -18.75))
     d[1].setValues(textPoint=(8.75, -18.75))
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=179.947,
-                                                    farPlane=197.177, width=106.893, height=47.7308, cameraPosition=(
-            13.5963, -19.5459, 188.562), cameraTarget=(13.5963, -19.5459, 0))
+
     s = mdb.models['Model-1'].sketches['__profile__']
     s.Parameter(name='Outer_Radius', path='dimensions[2]', expression="{:.9f}".format(R_b + t_s))
     s.Parameter(name='Bending_angle', path='dimensions[0]', expression="{:.9f}".format(alpha),
@@ -645,7 +613,6 @@ def TopSupport():
     p.AnalyticRigidSurfExtrude(sketch=s, depth=50.0)
     s.unsetPrimaryObject()
     p = mdb.models['Model-1'].parts['Support_top']
-    session.viewports['Viewport: 1'].setValues(displayedObject=p)
     del mdb.models['Model-1'].sketches['__profile__']
 
 
@@ -669,31 +636,19 @@ def Assembly():
               axisDirection=(0.0, 10.0, 0.0), angle=-90.0)
 
     a = mdb.models['Model-1'].rootAssembly
-    session.viewports['Viewport: 1'].setValues(displayedObject=a)
     a = mdb.models['Model-1'].rootAssembly
     a.DatumCsysByDefault(CARTESIAN)
     p = mdb.models['Model-1'].parts['Support_top']
     a.Instance(name='Support_top-1', part=p, dependent=ON)
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=629.507,
-                                                    farPlane=829.35, width=215.78, height=96.3522,
-                                                    cameraPosition=(615.336,
-                                                                    163.206,
-                                                                    -228.091),
-                                                    cameraUpVector=(-0.54683, 0.830876, 0.103363),
-                                                    cameraTarget=(192.671, 51.8428, -100.765), viewOffsetX=-46.1269,
-                                                    viewOffsetY=-8.5459)
+
     a = mdb.models['Model-1'].rootAssembly
     a.translate(instanceList=('Support_top-1',), vector=(0.0, 1.1, 0.0))
-    session.viewports['Viewport: 1'].view.setValues(nearPlane=637.419,
-                                                    farPlane=806.205, width=218.492, height=97.5632, cameraPosition=(
-            667.085, 68.9304, 147.511), cameraUpVector=(-0.382608, 0.91524,
-                                                        -0.126588), cameraTarget=(226.435, 35.4059, 38.1294),
-                                                    viewOffsetX=-46.7066, viewOffsetY=-8.6533)
+
     a = mdb.models['Model-1'].rootAssembly
     a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 75.0))
 
 
-Material_import()
+# Material_import()
 Cyl_Indenter()
 Sheet()
 BottomSupport()
