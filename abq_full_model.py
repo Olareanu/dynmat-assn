@@ -458,8 +458,6 @@ def Cyl_Indenter():
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     p.generateMesh()
 
-    p1 = mdb.models['Model-1'].parts['indenter_cylindrical']
-    session.viewports['Viewport: 1'].setValues(displayedObject=p1)
 
 def Sheet():
     s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
@@ -642,6 +640,17 @@ def BottomSupport():
     p.RemoveFaces(faceList=f[3:5] + f[7:8], deleteCells=False)
 
 
+    # Seeding and meshing
+    p = mdb.models['Model-1'].parts['Support_bottom']
+    p.seedPart(size=1.5, deviationFactor=0.1, minSizeFactor=0.1)
+    p = mdb.models['Model-1'].parts['Support_bottom']
+    f = p.faces
+    pickedRegions = f.getSequenceFromMask(mask=('[#1f ]',), )
+    p.setMeshControls(regions=pickedRegions, elemShape=QUAD)
+    p = mdb.models['Model-1'].parts['Support_bottom']
+    p.generateMesh()
+
+
 def TopSupport():
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
@@ -740,12 +749,18 @@ def Assembly():
     a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 75.0))
 
 
+    a = mdb.models['Model-1'].rootAssembly
+    session.viewports['Viewport: 1'].setValues(displayedObject=a)
+
+
 # Material_import()
 Cyl_Indenter()
-# Sheet()
-# BottomSupport()
-# TopSupport()
-# Assembly()
+Sheet()
+BottomSupport()
+TopSupport()
+Assembly()
+
+
 
 if Elliptical:
     EllipticalHole()
