@@ -357,6 +357,17 @@ def bottomSupport():
     p = mdb.models['Model-1'].parts['Support_bottom']
     p.generateMesh()
 
+    # Set for rigid BC
+    p = mdb.models['Model-1'].parts['Support_bottom']
+    f = p.faces
+    faces = f.getSequenceFromMask(mask=('[#1f ]',), )
+    p.Set(faces=faces, name='Set-BottomSup')
+
+    # Reference point
+    p = mdb.models['Model-1'].parts['Support_bottom']
+    v1, e, d1, n1 = p.vertices, p.edges, p.datums, p.nodes
+    p.ReferencePoint(point=v1[6])
+
 
 def topSupport():
     # Geometry creation
@@ -434,6 +445,16 @@ def topSupport():
     p = mdb.models['Model-1'].parts['Support_top']
     p.generateMesh()
 
+    # Set for rigid BC
+    p = mdb.models['Model-1'].parts['Support_top']
+    f = p.faces
+    faces = f.getSequenceFromMask(mask=('[#3 ]',), )
+    p.Set(faces=faces, name='Set-TopSup')
+
+    # Reference point
+    p = mdb.models['Model-1'].parts['Support_top']
+    v2, e1, d2, n = p.vertices, p.edges, p.datums, p.nodes
+    p.ReferencePoint(point=v2[5])
 
 def sheet():
     s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
@@ -1030,8 +1051,34 @@ def step_setup():
     mdb.models['Model-1'].XsymmBC(name='BC-SheetX', createStepName='Initial',
                                   region=region, localCsys=None)
 
-    # Predefined fields
+    # Rigid BCs
 
+    a = mdb.models['Model-1'].rootAssembly
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Support_bottom-1'].sets['Set-BottomSup']
+    mdb.models['Model-1'].EncastreBC(name='BC-BotSup-Rigid',
+                                     createStepName='Initial', region=region, localCsys=None)
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Support_top-1'].sets['Set-TopSup']
+    mdb.models['Model-1'].EncastreBC(name='BC-TopSup-Rigid',
+                                     createStepName='Initial', region=region, localCsys=None)
+
+    # General Contacts
+
+    mdb.models['Model-1'].ContactProperty('IntProp-gen')
+    mdb.models['Model-1'].interactionProperties['IntProp-gen'].TangentialBehavior(
+        formulation=FRICTIONLESS)
+    mdb.models['Model-1'].interactionProperties['IntProp-gen'].NormalBehavior(
+        pressureOverclosure=HARD, allowSeparation=ON,
+        constraintEnforcementMethod=DEFAULT)
+    mdb.models['Model-1'].ContactExp(name='Int-gen-contact',
+                                     createStepName='Initial')
+    mdb.models['Model-1'].interactions['Int-gen-contact'].includedPairs.setValuesInStep(
+        stepName='Initial', useAllstar=ON)
+    mdb.models['Model-1'].interactions['Int-gen-contact'].contactPropertyAssignments.appendInStep(
+        stepName='Initial', assignments=((GLOBAL, SELF, 'IntProp-gen'),))
+
+    # Predefined fields
     a = mdb.models['Model-1'].rootAssembly
     region = a.instances['Identer_cylindrical-1'].sets['Set-Identer']
     mdb.models['Model-1'].Velocity(name='Predefined Field-Ident-Vel',
@@ -1051,9 +1098,21 @@ def step_setup():
                                                                                                        ))
 
     # Step 1
-    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=0.0025, adiabatic=ON,
+    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=0.0002, adiabatic=ON,
                                                improvedDtMethod=ON)
 
+
+def create_job():
+    a = mdb.models['Model-1'].rootAssembly
+    session.viewports['Viewport: 1'].setValues(displayedObject=a)
+    mdb.Job(name='Job-1', model='Model-1', description='', type=ANALYSIS,
+        atTime=None, waitMinutes=0, waitHours=0, queue=None, memory=90,
+        memoryUnits=PERCENTAGE, explicitPrecision=SINGLE,
+        nodalOutputPrecision=SINGLE, echoPrint=OFF, modelPrint=OFF,
+        contactPrint=OFF, historyPrint=OFF, userSubroutine='', scratch='',
+        resultsFormat=ODB, numDomains=4, activateLoadBalancing=False,
+        numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=4)
+    mdb.jobs['Job-1'].writeInput(consistencyChecking=OFF)
 
 fake_material_import()
 cyl_Indenter()
@@ -1062,3 +1121,4 @@ bottomSupport()
 topSupport()
 assembly()
 step_setup()
+create_job()
