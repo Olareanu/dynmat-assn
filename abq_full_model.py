@@ -261,12 +261,12 @@ def Cyl_Indenter():
     p = mdb.models['Model-1'].parts['Identer_cylindrical']
     f = p.faces
     faces = f.getSequenceFromMask(mask=('[#12 ]',), )
-    p.Set(faces=faces, name='Set-Identer-Zmin')
-    
+    p.Set(faces=faces, name='Set-Identer-Xmin')
+
     p = mdb.models['Model-1'].parts['Identer_cylindrical']
     f = p.faces
     faces = f.getSequenceFromMask(mask=('[#2c ]',), )
-    p.Set(faces=faces, name='Set-Identer-Xmin')
+    p.Set(faces=faces, name='Set-Identer-Zmin')
 
 
 def BottomSupport():
@@ -1011,9 +1011,30 @@ def Assembly():
     session.viewports['Viewport: 1'].setValues(displayedObject=a)
 
 
+def StepSetup():
+    # Symetry BCs
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Identer_cylindrical-1'].sets['Set-Identer-Zmin']
+    mdb.models['Model-1'].ZsymmBC(name='BC-IdentZ', createStepName='Initial',
+                                  region=region, localCsys=None)
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Identer_cylindrical-1'].sets['Set-Identer-Xmin']
+    mdb.models['Model-1'].XsymmBC(name='BC-IdentX', createStepName='Initial',
+                                  region=region, localCsys=None)
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Sheet-1'].sets['Set-Sheet-Zmin']
+    mdb.models['Model-1'].ZsymmBC(name='BC-SheetZ', createStepName='Initial',
+                                  region=region, localCsys=None)
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Sheet-1'].sets['Set-Sheet-Xmin']
+    mdb.models['Model-1'].XsymmBC(name='BC-SheetX', createStepName='Initial',
+                                  region=region, localCsys=None)
+
+
 Fake_material_import()
 Cyl_Indenter()
 Sheet()
 BottomSupport()
 TopSupport()
 Assembly()
+StepSetup()
