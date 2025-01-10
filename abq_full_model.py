@@ -418,38 +418,48 @@ def Cyl_Indenter():
     pickedEntities = (verts, edges,)
     p.ignoreEntity(entities=pickedEntities)
 
-    # Seed adges for meshing
-
+    # Seed edges for meshing
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     e = p.edges
     pickedEdges = e.getSequenceFromMask(mask=('[#700 ]',), )
-    p.seedEdgeBySize(edges=pickedEdges, size=0.7, deviationFactor=0.1,
+    p.seedEdgeBySize(edges=pickedEdges, size=1.0, deviationFactor=0.1,
                      constraint=FINER)
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     e = p.edges
     pickedEdges2 = e.getSequenceFromMask(mask=('[#80000 ]',), )
-    p.seedEdgeByBias(biasMethod=SINGLE, end2Edges=pickedEdges2, minSize=0.7,
-                     maxSize=10.0, constraint=FINER)
+    p.seedEdgeByBias(biasMethod=SINGLE, end2Edges=pickedEdges2, minSize=1.0,
+                     maxSize=12.0, constraint=FINER)
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     e = p.edges
     pickedEdges1 = e.getSequenceFromMask(mask=('[#4000 ]',), )
-    p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1, minSize=0.7,
-                     maxSize=10.0, constraint=FINER)
+    p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1, minSize=1.0,
+                     maxSize=12.0, constraint=FINER)
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     e = p.edges
     pickedEdges2 = e.getSequenceFromMask(mask=('[#1000 ]',), )
-    p.seedEdgeByBias(biasMethod=SINGLE, end2Edges=pickedEdges2, minSize=0.7,
-                     maxSize=10.0, constraint=FINER)
+    p.seedEdgeByBias(biasMethod=SINGLE, end2Edges=pickedEdges2, minSize=1.0,
+                     maxSize=12.0, constraint=FINER)
 
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     e = p.edges
     pickedEdges = e.getSequenceFromMask(mask=('[#40 ]',), )
-    p.seedEdgeBySize(edges=pickedEdges, size=1.4, deviationFactor=0.1,
-                     constraint=FINER)
+    p.seedEdgeBySize(edges=pickedEdges, size=1.5, deviationFactor=0.1,
+                     constraint=FINER) # element sizd troughout the thickness
+
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    pickedEdges = e.getSequenceFromMask(mask=('[#40800 ]', ), )
+    p.seedEdgeBySize(edges=pickedEdges, size=4, deviationFactor=0.05,
+        constraint=FINER)
+
 
     # Mesh
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     p.generateMesh()
+
+    p1 = mdb.models['Model-1'].parts['indenter_cylindrical']
+    session.viewports['Viewport: 1'].setValues(displayedObject=p1)
 
 def Sheet():
     s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
@@ -552,6 +562,9 @@ def Sheet():
 
 
 def BottomSupport():
+
+    #Geometry Creation
+
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
                                                 sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
