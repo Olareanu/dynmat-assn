@@ -390,14 +390,14 @@ def TopSupport():
     s.Parameter(name='Outer_Radius', path='dimensions[2]', expression="{:.9f}".format(R_b + t_s))
     s.Parameter(name='Bending_angle', path='dimensions[0]', expression="{:.9f}".format(alpha),
                 previousParameter='Outer_Radius')
-    s.Parameter(name='Vertical_Size', path='dimensions[1]', expression='40',
+    s.Parameter(name='Vertical_Size', path='dimensions[1]', expression='45',
                 previousParameter='Bending_angle')
-    s.Parameter(name='vertical_local_offset', path='dimensions[3]', expression='1',
+    s.Parameter(name='vertical_local_offset', path='dimensions[3]', expression='0.0',
                 previousParameter='Vertical_Size')
     p = mdb.models['Model-1'].Part(name='Support_top', dimensionality=THREE_D,
                                    type=DISCRETE_RIGID_SURFACE)
     p = mdb.models['Model-1'].parts['Support_top']
-    p.BaseShellExtrude(sketch=s, depth=50.0)
+    p.BaseShellExtrude(sketch=s, depth=30.0)
     s.unsetPrimaryObject()
     p = mdb.models['Model-1'].parts['Support_top']
     del mdb.models['Model-1'].sketches['__profile__']
@@ -484,7 +484,8 @@ def Sheet():
     s1.TangentConstraint(entity1=g[14], entity2=g[13])
     s1.TangentConstraint(entity1=g[15], entity2=g[14])
     s1.TangentConstraint(entity1=g[11], entity2=g[7])
-    s1.DistanceDimension(entity1=v[18], entity2=g[3], textPoint=(38.2222633361816, 26.1611824035645), value=60.0)
+    s1.DistanceDimension(entity1=v[18], entity2=g[3], textPoint=(38.2222633361816, 26.1611824035645),
+                         value=(60.0 + t_s))
     s1.DistanceDimension(entity1=v[4], entity2=g[2], textPoint=(-48.0425910949707, -13.5062065124512), value=100.0)
     s1.AngularDimension(line1=g[7], line2=g[2], textPoint=(-12.4803428649902, -7.53854751586914), value=20.1234)
 
@@ -563,7 +564,6 @@ def Sheet():
         pickedEdges = e.getSequenceFromMask(mask=('[#100 ]',), )
         p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
 
-
         # Seed tough width
         p = mdb.models['Model-1'].parts['Sheet']
         e = p.edges
@@ -584,7 +584,6 @@ def Sheet():
         p.seedEdgeBySize(edges=pickedEdges, size=1.4, deviationFactor=0.01,
                          minSizeFactor=0.1, constraint=FINER)
 
-
         # Seed trough length
         p = mdb.models['Model-1'].parts['Sheet']
         e = p.edges
@@ -602,7 +601,6 @@ def Sheet():
         p = mdb.models['Model-1'].parts['Sheet']
         p.seedPart(size=2.8, deviationFactor=0.01, minSizeFactor=0.1)
         p = mdb.models['Model-1'].parts['Sheet']
-
 
         # mesh controls for middle region
 
@@ -835,14 +833,14 @@ def Assembly():
     a1.Instance(name='indenter_cylindrical-1', part=p, dependent=ON)
 
     a1 = mdb.models['Model-1'].rootAssembly
-    a1.translate(instanceList=('Sheet-1',), vector=(0.0, -60.0, 0.0))
+    a1.translate(instanceList=('Sheet-1',), vector=(0.0, -(60.0+t_s), 0.0))
 
     a1 = mdb.models['Model-1'].rootAssembly
     a1.translate(instanceList=('Support_bottom-1',), vector=(0.0, 0.0, 50.0))
 
     a1 = mdb.models['Model-1'].rootAssembly
-    a1.rotate(instanceList=('indenter_cylindrical-1',), axisPoint=(0.0, 1e-06, 0.0),
-              axisDirection=(0.0, 10.0, 0.0), angle=-90.0)
+    a1.rotate(instanceList=('indenter_cylindrical-1',), axisPoint=(0.0, 0.0, 0.0),
+              axisDirection=(0.0, 1.0, 0.0), angle=-90.0)
 
     a = mdb.models['Model-1'].rootAssembly
     a = mdb.models['Model-1'].rootAssembly
@@ -851,22 +849,18 @@ def Assembly():
     a.Instance(name='Support_top-1', part=p, dependent=ON)
 
     a = mdb.models['Model-1'].rootAssembly
-    a.translate(instanceList=('Support_top-1',), vector=(0.0, 1.1, 0.0))
+    a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0 , 0.0))
 
     a = mdb.models['Model-1'].rootAssembly
-    a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 75.0))
+    a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 70.0))
 
     a = mdb.models['Model-1'].rootAssembly
     session.viewports['Viewport: 1'].setValues(displayedObject=a)
 
 
 # Material_import()
-# Cyl_Indenter()
+Cyl_Indenter()
 Sheet()
-# BottomSupport()
-# TopSupport()
-# Assembly()
-
-
-if Rectangular:
-    RectangularHole()
+BottomSupport()
+TopSupport()
+Assembly()
