@@ -26,7 +26,7 @@ R_b = 17.0  # Bending radius
 alpha = 25.0  # Bending angle
 t_s = 1.4  # Thickness
 
-sheetVersion = 1
+sheet_version = 1
 
 
 # 1 simple sheet, uniform mesh
@@ -35,7 +35,7 @@ sheetVersion = 1
 # 4 rectangular hole
 
 
-def Fake_material_import():
+def fake_material_import():
     from material import createMaterialFromDataString
     createMaterialFromDataString('Model-1', 'AA7020-T6', '2024',
                                  """{'density': {'dependencies': 0, 'distributionType': UNIFORM, 'fieldName': '', 'table': ((2.78e-09,),), 'temperatureDependency': OFF}, 'description': '', 'elastic': {'dependencies': 0, 'moduli': LONG_TERM, 'noCompression': OFF, 'noTension': OFF, 'table': ((74000.0, 0.33),), 'temperatureDependency': OFF, 'type': ISOTROPIC}, 'hosfordCoulombDamageInitiation': {'accumulationPower': 0.0, 'alpha': 0.0, 'angSmooth': 70.0, 'anglemax': 85.0, 'damageEvolutionList': [], 'definition': MSFLD, 'dependencies': 0, 'direction': NMORI, 'failureMechanisms': 1, 'feq': 10.0, 'fnn': 10.0, 'fnt': 10.0, 'frequency': 1, 'growthTolerance': 0.05, 'hasGrowthTolerance': OFF, 'hasUnstableGrowthTolerance': OFF, 'iniSmooth': YES, 'ks': 0.0, 'lodeDependency': OFF, 'npoly': QUADRATIC, 'numberImperfections': 4, 'omega': 1.0, 'peinc': 0.002, 'position': CENTROID, 'properties': 1, 'rCrackDirection': 0.0, 'rateDependency': OFF, 'refEnergy': 1.0, 'smoothing': NONE, 'table': ((1.25, 0.61, 0.04, 0.1, 0.0, 0.0),), 'temperatureDependency': OFF, 'tolerance': 0.05, 'unstableGrowthTolerance': 0.0, 'weightingMethod': UNIFORM}, 'inelasticHeatFraction': {'fraction': 0.9}, 'materialIdentifier': '', 'name': 'AA7020-T6', 'plastic': {'dataType': HALF_CYCLE, 'dependencies': 0, 'extrapolation': CONSTANT, 'hardening': ISOTROPIC, 'numBackstresses': 1, 'rate': OFF, 'scaleStress': None, 'staticRecovery': OFF, 'strainRangeDependency': OFF, 'table': ((327.188488218514, 0.0, 25.0), (343.58331243496, 0.00505050505050505, 25.0), (358.639154794304, 0.0101010101010101, 25.0),  (3.62227728752342, 0.474747474747475, 336.0), (3.62467648617164, 0.47979797979798, 336.0), (3.62702527697417, 0.484848484848485, 336.0), (3.6293256270531, 0.48989898989899, 336.0), (3.63157941754504, 0.494949494949495, 336.0)), 'temperatureDependency': ON}, 'specificHeat': {'dependencies': 0, 'law': CONSTANTVOLUME, 'table': ((897000000.0,),), 'temperatureDependency': OFF}}""")
@@ -51,7 +51,7 @@ def Fake_material_import():
                                  """{'density': {'dependencies': 0, 'distributionType': UNIFORM, 'fieldName': '', 'table': ((7.85e-09,),), 'temperatureDependency': OFF}, 'description': '', 'elastic': {'dependencies': 0, 'moduli': LONG_TERM, 'noCompression': OFF, 'noTension': OFF, 'table': ((185000.0, 0.33),), 'temperatureDependency': OFF, 'type': ISOTROPIC}, 'hosfordCoulombDamageInitiation': {'accumulationPower': 0.0, 'alpha': 0.0, 'angSmooth': 70.0, 'anglemax': 85.0, 'damageEvolutionList': [], 'definition': MSFLD, 'dependencies': 0, 'direction': NMORI, 'failureMechanisms': 1, 'feq': 10.0, 'fnn': 10.0, 'fnt': 10.0, 'frequency': 1, 'growthTolerance': 0.05, 'hasGrowthTolerance': OFF, 'hasUnstableGrowthTolerance': OFF, 'iniSmooth': YES, 'ks': 0.0, 'lodeDependency': OFF, 'npoly': QUADRATIC, 'numberImperfections': 4, 'omega': 1.0, 'peinc': 0.002, 'position': CENTROID, 'properties': 1, 'rCrackDirection': 0.0, 'rateDependency': OFF, 'refEnergy': 1.0, 'smoothing': NONE, 'table': ((1.22, 1.27, 0.11, 0.1, 0.066, 0.00321),), 'temperatureDependency': OFF, 'tolerance': 0.05, 'unstableGrowthTolerance': 0.0, 'weightingMethod': UNIFORM}, 'inelasticHeatFraction': {'fraction': 0.9}, 'materialIdentifier': '', 'name': 'TRIP780', 'plastic': {'dataType': HALF_CYCLE, 'dependencies': 0, 'extrapolation': CONSTANT, 'hardening': ISOTROPIC, 'numBackstresses': 1, 'rate': OFF, 'rateDependent': {'dependencies': 0, 'table': ((0.00557, 0.00321),), 'temperatureDependency': OFF, 'type': JOHNSON_COOK}, 'scaleStress': None, 'staticRecovery': OFF, 'strainRangeDependency': OFF, 'table': ((455.905190819261, 0.0, 20.0), (515.516667636567, 0.00505050505050505, 20.0), (560.012315608165, 0.0101010101010101, 20.0), (596.746478885304, 0.0151515151515152, 20.0), (628.392879726293, 0.0202020202020202, 20.0), (656.293543970297, 0.0252525252525253, 20.0), (681.248594002095, 0.0303030303030303, 20.0), (703.790006538981, 0.0353535353535354, 20.0), (724.298922543404, 0.0404040404040404, 20.0), (743.06343615584, 0.0454545454545455, 20.0), (760.310074106556, 0.0505050505050505, 20.0), (776.222316217459, 0.0555555555555556, 20.0), (790.952182775596, 0.0606060606060606, 20.0), (804.627860519038, 0.0656565656565657, 20.0), (0.750777532410493, 0.444444444444444, 1532.7), (0.752016610485918, 0.44949494949495, 1532.7), (0.753245040599822, 0.454545454545455, 1532.7), (0.754463047722154, 0.45959595959596, 1532.7), (0.755670848567007, 0.464646464646465, 1532.7), (0.756868652039358, 0.46969696969697, 1532.7), (0.758056659651093, 0.474747474747475, 1532.7), (0.759235065908738, 0.47979797979798, 1532.7), (0.760404058675082, 0.484848484848485, 1532.7), (0.761563819506725, 0.48989898989899, 1532.7), (0.762714523969389, 0.494949494949495, 1532.7)), 'temperatureDependency': ON}, 'specificHeat': {'dependencies': 0, 'law': CONSTANTVOLUME, 'table': ((420000000.0,),), 'temperatureDependency': OFF}}""")
 
 
-def Cyl_Indenter():
+def cyl_Indenter():
     # Geometry
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
@@ -269,7 +269,7 @@ def Cyl_Indenter():
     p.Set(faces=faces, name='Set-Identer-Zmin')
 
 
-def BottomSupport():
+def bottomSupport():
     # Geometry Creation
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
                                                 sheetSize=200.0)
@@ -358,7 +358,7 @@ def BottomSupport():
     p.generateMesh()
 
 
-def TopSupport():
+def topSupport():
     # Geometry creation
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
@@ -435,7 +435,7 @@ def TopSupport():
     p.generateMesh()
 
 
-def Sheet():
+def sheet():
     s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
                                                  sheetSize=200.0)
     g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
@@ -535,7 +535,7 @@ def Sheet():
     p = mdb.models['Model-1'].parts['Sheet']
     del mdb.models['Model-1'].sketches['__profile__']
 
-    if sheetVersion == 1:
+    if sheet_version == 1:
         # Still Partitioning as it gives a better mesh
         p = mdb.models['Model-1'].parts['Sheet']
         c = p.cells
@@ -582,7 +582,7 @@ def Sheet():
         faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
-    if sheetVersion == 2:
+    if sheet_version == 2:
         # Partitioning
         p = mdb.models['Model-1'].parts['Sheet']
         c = p.cells
@@ -700,7 +700,7 @@ def Sheet():
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
     # Elliptical Hole
-    if sheetVersion == 3:
+    if sheet_version == 3:
         Major_R = 15  # Major radius
         Minor_R = 15  # Minor radius
         # Vertical_d = 10 #Vertical distance of the point of the hole
@@ -814,7 +814,7 @@ def Sheet():
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
     # Rectangular Hole
-    if sheetVersion == 4:
+    if sheet_version == 4:
         Vertical_l = 10
         Horizontal_l = 10
         Hole_R = 2
@@ -976,7 +976,7 @@ def Sheet():
                         thicknessAssignment=FROM_SECTION)
 
 
-def Assembly():
+def assembly():
     a1 = mdb.models['Model-1'].rootAssembly
     p = mdb.models['Model-1'].parts['Sheet']
     a1.Instance(name='Sheet-1', part=p, dependent=ON)
@@ -1011,7 +1011,7 @@ def Assembly():
     session.viewports['Viewport: 1'].setValues(displayedObject=a)
 
 
-def StepSetup():
+def step_setup():
     # Symetry BCs
     a = mdb.models['Model-1'].rootAssembly
     region = a.instances['Identer_cylindrical-1'].sets['Set-Identer-Zmin']
@@ -1031,10 +1031,10 @@ def StepSetup():
                                   region=region, localCsys=None)
 
 
-Fake_material_import()
-Cyl_Indenter()
-Sheet()
-BottomSupport()
-TopSupport()
-Assembly()
-StepSetup()
+fake_material_import()
+cyl_Indenter()
+sheet()
+bottomSupport()
+topSupport()
+assembly()
+step_setup()
