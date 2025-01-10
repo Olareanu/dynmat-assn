@@ -1030,6 +1030,30 @@ def step_setup():
     mdb.models['Model-1'].XsymmBC(name='BC-SheetX', createStepName='Initial',
                                   region=region, localCsys=None)
 
+    # Predefined fields
+
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Identer_cylindrical-1'].sets['Set-Identer']
+    mdb.models['Model-1'].Velocity(name='Predefined Field-Ident-Vel',
+                                   region=region, field='', distributionType=MAGNITUDE,
+                                   velocity2=-60000.0, omega=0.0)
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Identer_cylindrical-1'].sets['Set-Identer']
+    mdb.models['Model-1'].Temperature(name='Predefined Field-Ident-Temp',
+                                      createStepName='Initial', region=region, distributionType=UNIFORM,
+                                      crossSectionDistribution=CONSTANT_THROUGH_THICKNESS, magnitudes=(25.0,
+                                                                                                       ))
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Sheet-1'].sets['Set-Sheet']
+    mdb.models['Model-1'].Temperature(name='Predefined Field-Sheet-Temp',
+                                      createStepName='Initial', region=region, distributionType=UNIFORM,
+                                      crossSectionDistribution=CONSTANT_THROUGH_THICKNESS, magnitudes=(25.0,
+                                                                                                       ))
+
+    # Step 1
+    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=0.0025, adiabatic=ON,
+                                               improvedDtMethod=ON)
+
 
 fake_material_import()
 cyl_Indenter()
