@@ -26,7 +26,7 @@ R_b = 17.0  # Bending radius
 alpha = 25.0  # Bending angle
 t_s = 1.4  # Thickness
 
-Elliptical = True
+Elliptical = False
 Major_R = 15  # Major radius
 Minor_R = 15  # Minor radius
 # Vertical_d = 10 #Vertical distance of the point of the hole
@@ -266,6 +266,8 @@ def RectangularHole():
 
 
 def Cyl_Indenter():
+    # Geometry
+
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
     s.setPrimaryObject(option=STANDALONE)
@@ -370,6 +372,84 @@ def Cyl_Indenter():
     s.unsetPrimaryObject()
     del mdb.models['Model-1'].sketches['__profile__']
 
+    # Partitioning for meshing
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    f1, e1, d1 = p.faces, p.edges, p.datums
+    t = p.MakeSketchTransform(sketchPlane=f1[1], sketchUpEdge=e1[1],
+                              sketchPlaneSide=SIDE1, origin=(0.0, 1e-06, 0.0))
+    s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                sheetSize=258.34, gridSpacing=6.45, transform=t)
+    g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+    s.setPrimaryObject(option=SUPERIMPOSE)
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+    s.rectangle(point1=(0.0, 0.0), point2=(-30.0, -10.0))
+    s.Line(point1=(-30.0, -10.0), point2=(-100.0, -81.76385176))
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    f = p.faces
+    pickedFaces = f.getSequenceFromMask(mask=('[#2 ]',), )
+    e, d2 = p.edges, p.datums
+    p.PartitionFaceBySketch(sketchUpEdge=e[1], faces=pickedFaces, sketch=s)
+    s.unsetPrimaryObject()
+    del mdb.models['Model-1'].sketches['__profile__']
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    c = p.cells
+    pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+    e1, d1 = p.edges, p.datums
+    pickedEdges = (e1[1], e1[4])
+    p.PartitionCellByExtrudeEdge(line=e1[9], cells=pickedCells, edges=pickedEdges,
+                                 sense=REVERSE)
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    c = p.cells
+    pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+    e, d2 = p.edges, p.datums
+    pickedEdges = (e[11],)
+    p.PartitionCellByExtrudeEdge(line=e[16], cells=pickedCells, edges=pickedEdges,
+                                 sense=REVERSE)
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    edges = e.getSequenceFromMask(mask=('[#8 ]',), )
+    v = p.vertices
+    verts = v.getSequenceFromMask(mask=('[#8 ]',), )
+    pickedEntities = (verts, edges,)
+    p.ignoreEntity(entities=pickedEntities)
+
+    # Seed adges for meshing
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    pickedEdges = e.getSequenceFromMask(mask=('[#700 ]',), )
+    p.seedEdgeBySize(edges=pickedEdges, size=0.7, deviationFactor=0.1,
+                     constraint=FINER)
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    pickedEdges2 = e.getSequenceFromMask(mask=('[#80000 ]',), )
+    p.seedEdgeByBias(biasMethod=SINGLE, end2Edges=pickedEdges2, minSize=0.7,
+                     maxSize=10.0, constraint=FINER)
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    pickedEdges1 = e.getSequenceFromMask(mask=('[#4000 ]',), )
+    p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1, minSize=0.7,
+                     maxSize=10.0, constraint=FINER)
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    pickedEdges2 = e.getSequenceFromMask(mask=('[#1000 ]',), )
+    p.seedEdgeByBias(biasMethod=SINGLE, end2Edges=pickedEdges2, minSize=0.7,
+                     maxSize=10.0, constraint=FINER)
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    e = p.edges
+    pickedEdges = e.getSequenceFromMask(mask=('[#40 ]',), )
+    p.seedEdgeBySize(edges=pickedEdges, size=1.4, deviationFactor=0.1,
+                     constraint=FINER)
+
+    # Mesh
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    p.generateMesh()
 
 def Sheet():
     s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
@@ -544,7 +624,6 @@ def BottomSupport():
     e = p.edges
     p.Round(radius=10.0, edgeList=(e[9], e[11]))
 
-
     p = mdb.models['Model-1'].parts['Support_bottom']
     f = p.faces
     p.RemoveFaces(faceList=f[3:5] + f[7:8], deleteCells=False)
@@ -650,10 +729,10 @@ def Assembly():
 
 # Material_import()
 Cyl_Indenter()
-Sheet()
-BottomSupport()
-TopSupport()
-Assembly()
+# Sheet()
+# BottomSupport()
+# TopSupport()
+# Assembly()
 
 if Elliptical:
     EllipticalHole()
