@@ -444,15 +444,13 @@ def Cyl_Indenter():
     e = p.edges
     pickedEdges = e.getSequenceFromMask(mask=('[#40 ]',), )
     p.seedEdgeBySize(edges=pickedEdges, size=1.5, deviationFactor=0.1,
-                     constraint=FINER) # element sizd troughout the thickness
-
+                     constraint=FINER)  # element sizd troughout the thickness
 
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     e = p.edges
-    pickedEdges = e.getSequenceFromMask(mask=('[#40800 ]', ), )
+    pickedEdges = e.getSequenceFromMask(mask=('[#40800 ]',), )
     p.seedEdgeBySize(edges=pickedEdges, size=4, deviationFactor=0.05,
-        constraint=FINER)
-
+                     constraint=FINER)
 
     # Mesh
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
@@ -560,9 +558,7 @@ def Sheet():
 
 
 def BottomSupport():
-
-    #Geometry Creation
-
+    # Geometry Creation
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
                                                 sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
@@ -639,7 +635,6 @@ def BottomSupport():
     f = p.faces
     p.RemoveFaces(faceList=f[3:5] + f[7:8], deleteCells=False)
 
-
     # Seeding and meshing
     p = mdb.models['Model-1'].parts['Support_bottom']
     p.seedPart(size=1.5, deviationFactor=0.1, minSizeFactor=0.1)
@@ -652,6 +647,7 @@ def BottomSupport():
 
 
 def TopSupport():
+    # Geometry creation
     s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
     g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
     s.setPrimaryObject(option=STANDALONE)
@@ -709,12 +705,22 @@ def TopSupport():
     s.Parameter(name='vertical_local_offset', path='dimensions[3]', expression='1',
                 previousParameter='Vertical_Size')
     p = mdb.models['Model-1'].Part(name='Support_top', dimensionality=THREE_D,
-                                   type=ANALYTIC_RIGID_SURFACE)
+                                   type=DISCRETE_RIGID_SURFACE)
     p = mdb.models['Model-1'].parts['Support_top']
-    p.AnalyticRigidSurfExtrude(sketch=s, depth=50.0)
+    p.BaseShellExtrude(sketch=s, depth=50.0)
     s.unsetPrimaryObject()
     p = mdb.models['Model-1'].parts['Support_top']
     del mdb.models['Model-1'].sketches['__profile__']
+
+    # Seeding and Mesh generation
+    p = mdb.models['Model-1'].parts['Support_top']
+    p.seedPart(size=1.5, deviationFactor=0.1, minSizeFactor=0.1)
+    p = mdb.models['Model-1'].parts['Support_top']
+    f = p.faces
+    pickedRegions = f.getSequenceFromMask(mask=('[#3 ]',), )
+    p.setMeshControls(regions=pickedRegions, elemShape=QUAD)
+    p = mdb.models['Model-1'].parts['Support_top']
+    p.generateMesh()
 
 
 def Assembly():
@@ -748,7 +754,6 @@ def Assembly():
     a = mdb.models['Model-1'].rootAssembly
     a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 75.0))
 
-
     a = mdb.models['Model-1'].rootAssembly
     session.viewports['Viewport: 1'].setValues(displayedObject=a)
 
@@ -759,7 +764,6 @@ Sheet()
 BottomSupport()
 TopSupport()
 Assembly()
-
 
 
 if Elliptical:
