@@ -26,20 +26,11 @@ R_b = 17.0  # Bending radius
 alpha = 25.0  # Bending angle
 t_s = 1.4  # Thickness
 
-meshStrategy = 1  # 1 for a uniform mesh, 2 for variable element size
-
-Elliptical = False
-Major_R = 15  # Major radius
-Minor_R = 15  # Minor radius
-# Vertical_d = 10 #Vertical distance of the point of the hole
-Vertical_d = Major_R  # This makes Major_R always vertical and Minor_R horizontal
-
-Horizontal_d = 25  # Horizontal distance of the hole
-
-Rectangular = False
-Vertical_l = 10
-Horizontal_l = 15
-Hole_R = 4
+sheetVersion = 4
+# 1 simple sheet, uniform mesh
+# 2 simple sheet, variable element size
+# 3 elliptical hole
+# 4 rectangular hole
 
 
 def Fake_material_import():
@@ -530,136 +521,139 @@ def Sheet():
     p = mdb.models['Model-1'].parts['Sheet']
     del mdb.models['Model-1'].sketches['__profile__']
 
-    # Meshing without any holes
-    if not Elliptical and not Rectangular:
+    if sheetVersion == 1:
+        # Still Partitioning as it gives a better mesh
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[7], point2=v1[13],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[8], rule=MIDDLE))
 
-        if meshStrategy == 1:
-            # Still Partitioning as it gives a better mesh
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
-            v1, e1, d1 = p.vertices, p.edges, p.datums
-            p.PartitionCellByPlaneThreePoints(point1=v1[7], point2=v1[13],
-                                              cells=pickedCells, point3=p.InterestingPoint(edge=e1[8], rule=MIDDLE))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v, e, d = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v[11], point2=v[6], cells=pickedCells,
+                                          point3=p.InterestingPoint(edge=e[18], rule=MIDDLE))
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
-            v, e, d = p.vertices, p.edges, p.datums
-            p.PartitionCellByPlaneThreePoints(point1=v[11], point2=v[6], cells=pickedCells,
-                                              point3=p.InterestingPoint(edge=e[18], rule=MIDDLE))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[23], rule=MIDDLE))
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
-            v1, e1, d1 = p.vertices, p.edges, p.datums
-            p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
-                                              cells=pickedCells, point3=p.InterestingPoint(edge=e1[23], rule=MIDDLE))
+        # Seeding and meshing
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=0.7, deviationFactor=0.1, minSizeFactor=0.1)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
 
-            # Seeding and meshing
-            p = mdb.models['Model-1'].parts['Sheet']
-            p.seedPart(size=0.7, deviationFactor=0.1, minSizeFactor=0.1)
-            p = mdb.models['Model-1'].parts['Sheet']
-            p.generateMesh()
+        # Generate set with entire sheet
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
 
-        if meshStrategy == 2:
-            # Partitioning
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
-            v1, e1, d1 = p.vertices, p.edges, p.datums
-            p.PartitionCellByPlaneThreePoints(point1=v1[7], point2=v1[13],
-                                              cells=pickedCells, point3=p.InterestingPoint(edge=e1[8], rule=MIDDLE))
+    if sheetVersion == 2:
+        # Partitioning
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[7], point2=v1[13],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[8], rule=MIDDLE))
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
-            v, e, d = p.vertices, p.edges, p.datums
-            p.PartitionCellByPlaneThreePoints(point1=v[11], point2=v[6], cells=pickedCells,
-                                              point3=p.InterestingPoint(edge=e[18], rule=MIDDLE))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v, e, d = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v[11], point2=v[6], cells=pickedCells,
+                                          point3=p.InterestingPoint(edge=e[18], rule=MIDDLE))
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
-            v1, e1, d1 = p.vertices, p.edges, p.datums
-            p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
-                                              cells=pickedCells, point3=p.InterestingPoint(edge=e1[23], rule=MIDDLE))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[23], rule=MIDDLE))
 
-            # Seeding trough thickness
+        # Seeding trough thickness
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#0 #1 ]',), )
-            p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#0 #1 ]',), )
+        p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#20000 ]',), )
-            p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#20000 ]',), )
+        p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#1000 ]',), )
-            p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#1000 ]',), )
+        p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#8 ]',), )
-            p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#8 ]',), )
+        p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#100 ]',), )
-            p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#100 ]',), )
+        p.seedEdgeByNumber(edges=pickedEdges, number=4, constraint=FINER)
 
-            # Seed tough width
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#a0000000 ]',), )
-            p.seedEdgeBySize(edges=pickedEdges, size=0.35, deviationFactor=0.1,
-                             constraint=FINER)
+        # Seed tough width
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#a0000000 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=0.35, deviationFactor=0.1,
+                         constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#300000 ]',), )
-            p.seedEdgeBySize(edges=pickedEdges, size=0.35, deviationFactor=0.1,
-                             constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#300000 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=0.35, deviationFactor=0.1,
+                         constraint=FINER)
 
-            # just above lower radius
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#c00 ]',), )
-            p.seedEdgeBySize(edges=pickedEdges, size=1.4, deviationFactor=0.01,
-                             minSizeFactor=0.1, constraint=FINER)
+        # just above lower radius
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#c00 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=1.4, deviationFactor=0.01,
+                         minSizeFactor=0.1, constraint=FINER)
 
-            # Seed trough length
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges = e.getSequenceFromMask(mask=('[#41400000 #2 ]',), )
-            p.seedEdgeBySize(edges=pickedEdges, size=0.35, deviationFactor=0.1,
-                             constraint=FINER)
+        # Seed trough length
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#41400000 #2 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=0.35, deviationFactor=0.1,
+                         constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            e = p.edges
-            pickedEdges1 = e.getSequenceFromMask(mask=('[#0 #4 ]',), )
-            pickedEdges2 = e.getSequenceFromMask(mask=('[#10050000 ]',), )
-            p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
-                             end2Edges=pickedEdges2, minSize=0.35, maxSize=2.8, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        pickedEdges1 = e.getSequenceFromMask(mask=('[#0 #4 ]',), )
+        pickedEdges2 = e.getSequenceFromMask(mask=('[#10050000 ]',), )
+        p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
+                         end2Edges=pickedEdges2, minSize=0.35, maxSize=2.8, constraint=FINER)
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            p.seedPart(size=2.8, deviationFactor=0.01, minSizeFactor=0.1)
-            p = mdb.models['Model-1'].parts['Sheet']
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=2.8, deviationFactor=0.01, minSizeFactor=0.1)
+        p = mdb.models['Model-1'].parts['Sheet']
 
-            # mesh controls for middle region
+        # mesh controls for middle region
 
-            p = mdb.models['Model-1'].parts['Sheet']
-            c = p.cells
-            pickedRegions = c.getSequenceFromMask(mask=('[#2 ]',), )
-            p.setMeshControls(regions=pickedRegions, technique=SWEEP,
-                              algorithm=ADVANCING_FRONT)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#2 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
 
-            # Generate mesh
-            p.generateMesh()
+        # Generate mesh
+        p.generateMesh()
 
         # Generate set with entire sheet
         p = mdb.models['Model-1'].parts['Sheet']
@@ -668,7 +662,14 @@ def Sheet():
         p.Set(cells=cells, name='Set-Sheet')
 
     # Elliptical Hole
-    if Elliptical:
+    if sheetVersion == 3:
+        Major_R = 15  # Major radius
+        Minor_R = 15  # Minor radius
+        # Vertical_d = 10 #Vertical distance of the point of the hole
+        Vertical_d = Major_R  # This makes Major_R always vertical and Minor_R horizontal
+
+        Horizontal_d = 25  # Horizontal distance of the hole
+
         p = mdb.models['Model-1'].parts['Sheet']
         f, e1 = p.faces, p.edges
         t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
@@ -764,7 +765,11 @@ def Sheet():
         p.Set(cells=cells, name='Set-Sheet')
 
     # Rectangular Hole
-    if Rectangular:
+    if sheetVersion == 4:
+        Vertical_l = 10
+        Horizontal_l = 10
+        Hole_R = 2
+
         p = mdb.models['Model-1'].parts['Sheet']
         f, e1 = p.faces, p.edges
         t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
