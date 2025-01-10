@@ -26,7 +26,7 @@ R_b = 17.0  # Bending radius
 alpha = 25.0  # Bending angle
 t_s = 1.4  # Thickness
 
-meshStrategy = 1 # 1 for a uniform mesh, 2 for variable element size
+meshStrategy = 1  # 1 for a uniform mesh, 2 for variable element size
 
 Elliptical = False
 Major_R = 15  # Major radius
@@ -247,6 +247,21 @@ def Cyl_Indenter():
     # Mesh
     p = mdb.models['Model-1'].parts['indenter_cylindrical']
     p.generateMesh()
+
+    # Section assignment
+
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    c = p.cells
+    cells = c.getSequenceFromMask(mask=('[#7 ]',), )
+    p.Set(cells=cells, name='Set-Identer')
+    mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Identer',
+                                                  material='Mars300', thickness=None)
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    region = p.sets['Set-Identer']
+    p = mdb.models['Model-1'].parts['indenter_cylindrical']
+    p.SectionAssignment(region=region, sectionName='Section-Identer', offset=0.0,
+                        offsetType=MIDDLE_SURFACE, offsetField='',
+                        thicknessAssignment=FROM_SECTION)
 
 
 def BottomSupport():
@@ -541,13 +556,11 @@ def Sheet():
             p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
                                               cells=pickedCells, point3=p.InterestingPoint(edge=e1[23], rule=MIDDLE))
 
-
             # Seeding and meshing
             p = mdb.models['Model-1'].parts['Sheet']
             p.seedPart(size=0.7, deviationFactor=0.1, minSizeFactor=0.1)
             p = mdb.models['Model-1'].parts['Sheet']
             p.generateMesh()
-
 
         if meshStrategy == 2:
             # Partitioning
@@ -648,6 +661,12 @@ def Sheet():
             # Generate mesh
             p.generateMesh()
 
+        # Generate set with entire sheet
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+
     # Elliptical Hole
     if Elliptical:
         p = mdb.models['Model-1'].parts['Sheet']
@@ -734,10 +753,15 @@ def Sheet():
         p = mdb.models['Model-1'].parts['Sheet']
         p.seedPart(size=0.7, deviationFactor=0.1, minSizeFactor=0.1)
 
-
         # Meshing
         p = mdb.models['Model-1'].parts['Sheet']
         p.generateMesh()
+
+        # Generate set with entire sheet
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
 
     # Rectangular Hole
     if Rectangular:
@@ -887,6 +911,15 @@ def Sheet():
                      sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
         s.unsetPrimaryObject()
         del mdb.models['Model-1'].sketches['__profile__']
+
+    # Section assgnemnet using set-sheet
+    mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='DP590', thickness=None)
+    p = mdb.models['Model-1'].parts['Sheet']
+    region = p.sets['Set-Sheet']
+    p = mdb.models['Model-1'].parts['Sheet']
+    p.SectionAssignment(region=region, sectionName='Section-Sheet', offset=0.0,
+                        offsetType=MIDDLE_SURFACE, offsetField='',
+                        thicknessAssignment=FROM_SECTION)
 
 
 def Assembly():
