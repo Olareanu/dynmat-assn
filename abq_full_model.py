@@ -19,10 +19,15 @@ import visualization
 import xyPlot
 import displayGroupOdbToolset as dgo
 import connectorBehavior
+import os
 
 # PARAMETERS -----------------------------------------------------------------------------------------------------
+# Here are some examples of parameter that need to be set. Usually lines of code are appended to the beginning of this
+# script to set these in a safe manner.
 
-job_name = 'Job-1'
+
+job_name = 'Job-full-model-1'
+nr_cpus = 4
 
 bending_radius = 17.0  # Bending radius
 bending_angle = 25.0  # Bending angle
@@ -1034,10 +1039,13 @@ def create_job():
             memoryUnits=PERCENTAGE, explicitPrecision=SINGLE,
             nodalOutputPrecision=SINGLE, echoPrint=OFF, modelPrint=OFF,
             contactPrint=OFF, historyPrint=OFF, userSubroutine='', scratch='',
-            resultsFormat=ODB, numDomains=4, activateLoadBalancing=False,
-            numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=4)
+            resultsFormat=ODB, numDomains=nr_cpus, activateLoadBalancing=False,
+            numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=nr_cpus)
     mdb.jobs[job_name].writeInput(consistencyChecking=OFF)
 
+
+# Change working directory where inp files are generated
+os.chdir(r"C:\Temp\DirectoryName")
 
 material_import()
 enableElementDelition()

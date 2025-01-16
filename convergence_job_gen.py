@@ -20,6 +20,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1):
     prepend_lines = [
         "# Prepended parameters\n",
         f"job_name = '{job_name}'  # Job name dynamically generated\n",
+        f"nr_cpus = 4\n"
         f"bending_radius = 17.0  # Bending radius\n",
         f"bending_angle = 25.0  # Bending angle\n",
         f"sheet_thickness = 1.4  # Thickness\n",
@@ -97,7 +98,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1):
 
 if __name__ == "__main__":
     # Define the `elements_per_thickness` values to iterate over
-    elements_per_thickness_values = [1, 2, 3, 4]  # Modify as needed
+    elements_per_thickness_values = [1, 2, 3, 4, 5]  # Modify as needed
 
     # Define the `sheet_version` (you can loop over versions if necessary)
     sv = 1  # Example: Set this to 1 for now; iterate manually if needed.
