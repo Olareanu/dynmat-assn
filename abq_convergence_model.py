@@ -19,29 +19,34 @@ import visualization
 import xyPlot
 import displayGroupOdbToolset as dgo
 import connectorBehavior
+import os
+
 
 # PARAMETERS -----------------------------------------------------------------------------------------------------
-
-job_name = 'Job-cov-1'
-
-bending_radius = 17.0  # Bending radius
-bending_angle = 25.0  # Bending angle
-sheet_thickness = 1.4  # Thickness
-
-sheet_version = 1
-# 1 simple sheet, uniform mesh, brick element
-# 2 simple sheet, variable element size
-# 3 elliptical hole
+# Here are some examples of parameter that need to be set. Usually lines of code are appended to the beginning of this
+# script to set these in a safe manner.
 
 
-elements_per_thickness = 1
-smallest_element_length = sheet_thickness / elements_per_thickness
-
-indenter_version = 1
-
-
-# 1 cylindrical indenter
-# 2 spherical indenter
+# job_name = 'Job-cov-1'
+#
+# bending_radius = 17.0  # Bending radius
+# bending_angle = 25.0  # Bending angle
+# sheet_thickness = 1.4  # Thickness
+#
+# sheet_version = 1
+# # 1 simple sheet, uniform mesh, brick element
+# # 2 simple sheet, variable element size
+# # 3 elliptical hole
+#
+#
+# elements_per_thickness = 1
+# smallest_element_length = sheet_thickness / elements_per_thickness
+#
+# indenter_version = 1
+#
+#
+# # 1 cylindrical indenter
+# # 2 spherical indenter
 
 
 def material_import():
@@ -1038,6 +1043,9 @@ def create_job():
             numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=4)
     mdb.jobs[job_name].writeInput(consistencyChecking=OFF)
 
+
+# Change working directory where inp files are generated
+os.chdir(r"C:\Temp\DirectoryName")
 
 material_import()
 enableElementDelition()
