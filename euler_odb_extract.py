@@ -1,16 +1,21 @@
+from __future__ import print_function  # For Python 2.7 print function compatibility
 import os
+import sys
 
 from odbAccess import openOdb
 from abaqus import *
 from abaqusConstants import *
 from visualization import *
 import csv
-import matplotlib.pyplot as plt
+
+
+def is_python2():
+    return sys.version_info[0] == 2
 
 
 # Function to export history outputs for each region to separate CSV files
 def export_history_outputs_by_region(odb, output_folder):
-    print(f"Extracting history outputs by region into {output_folder}...")
+    print("Extracting history outputs by region into {}...".format(output_folder))
 
     try:
         # Get the first step from the ODB
@@ -25,7 +30,7 @@ def export_history_outputs_by_region(odb, output_folder):
         for history_region_key, history_region in step.historyRegions.items():
             # Create a CSV file for this region
             region_name = history_region_key.replace("/", "_")  # Replace unsupported characters in filenames
-            csv_filename = os.path.join(output_folder, f"{region_name}.csv")
+            csv_filename = os.path.join(output_folder, "{}.csv".format(region_name))
 
             # Collect data for this region
             history_data = {}
@@ -39,7 +44,9 @@ def export_history_outputs_by_region(odb, output_folder):
             sorted_time = sorted(time_set)
 
             # Write region data to the CSV file
-            with open(csv_filename, mode='w', newline='') as csv_file:
+            mode = 'wb' if is_python2() else 'w'
+            kwargs = {} if is_python2() else {'newline': ''}
+            with open(csv_filename, mode, **kwargs) as csv_file:
                 writer = csv.writer(csv_file)
 
                 # Write header (time + all output variable headers)
@@ -55,15 +62,15 @@ def export_history_outputs_by_region(odb, output_folder):
                         row.append(matches[0] if matches else None)
                     writer.writerow(row)
 
-            print(f"Exported region {history_region_key} to {csv_filename}")
+            print("Exported region {} to {}".format(history_region_key, csv_filename))
 
     except Exception as e:
-        print(f"Error exporting history outputs: {e}")
+        print("Error exporting history outputs: {}".format(e))
 
 
 # Function to generate a deformed field image
 def capture_deformed_field(odb, image_filename, output_folder):
-    print(f"Capturing deformed field image and saving to {image_filename}...")
+    print("Capturing deformed field image and saving to {}...".format(image_filename))
 
     try:
         # Ensure the output folder exists
@@ -72,7 +79,6 @@ def capture_deformed_field(odb, image_filename, output_folder):
 
         # Full image file path
         image_file_path = os.path.join(output_folder, image_filename)
-
 
         # Create this through a macro
         session.viewports['Viewport: 1'].setValues(displayedObject=odb)
@@ -94,14 +100,14 @@ def capture_deformed_field(odb, image_filename, output_folder):
         session.viewports['Viewport: 1'].odbDisplay.commonOptions.setValues(
             visibleEdges=ALL)
         session.viewports['Viewport: 1'].view.setValues(nearPlane=333.126,
-                                                        farPlane=465.248, width=89.365, height=55.7612,
-                                                        viewOffsetX=-30.4649,
-                                                        viewOffsetY=-8.02732)
+                                                      farPlane=465.248, width=89.365, height=55.7612,
+                                                      viewOffsetX=-30.4649,
+                                                      viewOffsetY=-8.02732)
         session.printToFile(fileName=(image_file_path + "_2.png"), format=PNG, canvasObjects=(
             session.viewports['Viewport: 1'],))
 
     except Exception as e:
-        print(f"Error capture picture with deformed field: {e}")
+        print("Error capture picture with deformed field: {}".format(e))
 
 
 # Main script
@@ -116,7 +122,7 @@ def main():
 
     for odb_file in odb_files:
         # Open the ODB file
-        print(f"Processing {odb_file}...")
+        print("Processing {}...".format(odb_file))
         odb = openOdb(path=odb_file)
 
         # Export history outputs by region to a folder
@@ -124,67 +130,11 @@ def main():
         export_history_outputs_by_region(odb, output_folder)
 
         # Capture the deformed field image
-        image_filename = f"{os.path.splitext(odb_file)[0]}_deformed"
+        image_filename = "{}_deformed".format(os.path.splitext(odb_file)[0])
         capture_deformed_field(odb, image_filename, output_folder)
 
         # Close the ODB file
         odb.close()
-
-        # Additional cleanup for Abaqus-generated files
-        try:
-            log_file = "abaqus_acis.log"
-
-            # Check and delete abaqus_acis.log
-            if os.path.exists(log_file):
-                os.remove(log_file)
-                # print(f"File '{log_file}' has been deleted.")
-
-        except Exception as e:
-            print(f"Error during cleanup of Abaqus files: {e}")
-
-    # Generate matplotlib plots
-    generate_plots()
-
-
-def generate_plots():
-    print("Generating plots from .csv files...")
-    # Get all subdirectories for history outputs
-    subdirectories = [d for d in os.listdir('.') if os.path.isdir(d) and d.endswith("_history_outputs")]
-
-    for subdir in subdirectories:
-        csv_files = [f for f in os.listdir(subdir) if f.endswith('.csv')]
-        for csv_file in csv_files:
-            csv_path = os.path.join(subdir, csv_file)
-
-            # Read CSV data
-            with open(csv_path, 'r') as f:
-                reader = csv.reader(f)
-                header = next(reader)  # Read the header row
-
-                # Extract time and all other outputs
-                columns = {col: [] for col in header}
-                for row in reader:
-                    for i, col in enumerate(header):
-                        columns[col].append(float(row[i]) if row[i] else None)  # Handle missing data
-
-            # Times for plotting
-            times = columns["Time"]
-
-            # Create plots for each history output
-            for key in header[1:]:  # Skip "Time"
-                plt.figure(figsize=(8, 8))  # Set square figure size (8x8 inches)
-                plt.plot(times, columns[key], label=key)
-                plt.xlabel("Time", fontsize=12)  # Larger font for readability
-                plt.ylabel(key, fontsize=12)
-                plt.title(f"History Output: {key} (Region: {csv_file.replace('.csv', '')})", fontsize=14)
-                plt.legend(fontsize=10)
-                plt.grid()
-
-                # Increase DPI for high-quality output
-                plot_filename = os.path.join(subdir, f"{csv_file.replace('.csv', '')}_{key}_plot.png")
-                plt.savefig(plot_filename, dpi=300, bbox_inches="tight")  # Save with high DPI and tight layout
-                print(f"Plot saved to {plot_filename}")
-                plt.close()
 
 
 if __name__ == "__main__":

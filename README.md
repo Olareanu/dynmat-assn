@@ -6,10 +6,11 @@ A repo for scripts made for the Dynamic behaviour of Materials final Project
 |----------------------------|------------------------------------------------------------------------------------------------|
 | `abq_full_model.py`        | Script to be run in Abaqus CAE to generate geometry, boundary conditions, job, etc.            |
 | `abq_convergence_model.py` | Copy of `abq_full_model.py` but without parameters at the start.                               |
-| `convergence_job_gen.py`   | Script to iterate through parameters and create `.inp` files using `abq_convergence_model.py`  |
+| `convergence_job_gen.py`   | Script to iterate through parameters and create `.inp` files using `abq_convergence_model.py`. |
 | `job_gen_log.txt`          | Log file with the names of all the generated jobs.                                             |
 | `euler_job_submission.py`  | Script that loads all the jobs into the queue on euler.                                        |
-| `odb_extract.py`           | Script that extracts pictures and CSV files from ODB Databases.                                |
+| `euler_odb_extract.py`     | Script that extracts pictures and CSV files from ODB Databases.                                |
+| `euler_plots_from_csv.py`  | Script that generates plots from CSV files on euler.                                           |
 
 
 ### Usage of convergence_job_gen.py:
