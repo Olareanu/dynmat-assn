@@ -24,6 +24,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1):
         f"bending_radius = 17.0  # Bending radius\n",
         f"bending_angle = 25.0  # Bending angle\n",
         f"sheet_thickness = 1.4  # Thickness\n",
+        f"sheet_material = 1"
         f"sheet_version = {sheet_version}  # Sheet version (1: simple, 2: elliptical, etc.)\n",
         f"elements_per_thickness = {elements_per_thickness}  # Dynamic value being iterated\n",
         f"smallest_element_length = sheet_thickness / elements_per_thickness\n",

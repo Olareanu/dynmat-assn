@@ -9,7 +9,6 @@ A repo for scripts made for the Dynamic behaviour of Materials final Project
 | `convergence_job_gen.py`   | Script to iterate through parameters and create `.inp` files using `abq_convergence_model.py` |
 | `job_gen_log.txt`          | Log file with the names of all the generated jobs.                                            |
 | `euler_job_submission.py`  | Script that loads all the jobs into the queue on euler.                                       |
-                                         |
 
 ### Usage of convergence_job_gen.py:
 - Set working directory and other parameters in `abq_convergence_model.py`

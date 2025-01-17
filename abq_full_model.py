@@ -38,6 +38,7 @@ sheet_version = 1
 # 2 simple sheet, variable element size
 # 3 elliptical hole
 
+sheet_material = 1
 
 elements_per_thickness = 1
 smallest_element_length = sheet_thickness / elements_per_thickness
@@ -885,7 +886,15 @@ def sheet():
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
     # Section assgnemnet using set-sheet
-    mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='DP590', thickness=None)
+    if sheet_material == 1:
+        mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='DP590', thickness=None)
+
+    if sheet_material == 2:
+        mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='AA7020-T6', thickness=None)
+
+    if sheet_material ==3:
+        mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='TRIP780', thickness=None)
+
     p = mdb.models['Model-1'].parts['Sheet']
     region = p.sets['Set-Sheet']
     p = mdb.models['Model-1'].parts['Sheet']
