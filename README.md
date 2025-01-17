@@ -18,6 +18,7 @@ A repo for scripts made for the Dynamic behaviour of Materials final Project
 - Check `job_gen_log.txt` to make sure everything was generated, then delete its contents manually
 
 Useful euler commands and things to know:
+```
 navigate to cluster/scratch/kurzel
 module load abaqus/2023
 sbatch -n 4 -t 1-0 --mem-per-cpu 4G --wrap "abaqus job=Job-32 double cpus=4 scratch=\$TMPDIR"
@@ -25,3 +26,4 @@ squeue
 scancel <job_ID>
 scancel --state=PENDING
 scontrol show jobid –dd <job_ID>
+```
