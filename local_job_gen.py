@@ -3,7 +3,7 @@ import os
 
 def create_and_run_script(elements_per_thickness, sheet_version=1):
     # Define the name of the original script
-    original_script_name = "abq_convergence_model.py"
+    original_script_name = "abq_script_model.py"
 
     # Check if the original script exists
     if not os.path.exists(original_script_name):
