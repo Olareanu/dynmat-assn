@@ -999,7 +999,7 @@ def step_setup():
                                                                                                        ))
 
     # Step 1
-    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=0.003, adiabatic=ON,
+    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=0.0035, adiabatic=ON,
                                                improvedDtMethod=ON)
 
     # Field outputs
