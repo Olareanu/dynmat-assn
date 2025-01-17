@@ -14,7 +14,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1):
     new_script_base_name = "abq_temp_script"
 
     # Dynamically create the job name
-    job_name = f"Job-cov-SV-{sheet_version}-EPT-{elements_per_thickness}"  # EPT = Elements Per Thickness
+    job_name = f"Job-conv-DP590-SV-{sheet_version}-EPT-{elements_per_thickness}"  # EPT = Elements Per Thickness
 
     # Define the lines to prepend to the script
     prepend_lines = [
@@ -24,7 +24,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1):
         f"bending_radius = 17.0  # Bending radius\n",
         f"bending_angle = 25.0  # Bending angle\n",
         f"sheet_thickness = 1.4  # Thickness\n",
-        f"sheet_material = 1"
+        f"sheet_material = 1 \n"
         f"sheet_version = {sheet_version}  # Sheet version (1: simple, 2: elliptical, etc.)\n",
         f"elements_per_thickness = {elements_per_thickness}  # Dynamic value being iterated\n",
         f"smallest_element_length = sheet_thickness / elements_per_thickness\n",
