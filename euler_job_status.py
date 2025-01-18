@@ -116,4 +116,4 @@ if __name__ == "__main__":
         print(color + f"{result['Job Name']} - Status: {result['Status']} - "
                       f"Wallclock Time (s): {result['Wallclock Time (s)']}, "
                       f"Wallclock Time (hours): {wallclock_time_hours}, "
-                      f"Memory Used: {result['Memory Used']} GB" + RESET)
+                      f"Memory Used: {result['Memory Used']} " + RESET)
