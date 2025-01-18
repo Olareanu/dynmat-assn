@@ -20,8 +20,10 @@ def create_and_run_script(elements_per_thickness=3, sheet_version=1, indenter_ve
     else:
         thickness = 1.4
 
+    bend_radius_name = int(round(bend_radius))
+
         # Dynamically create the job name
-    job_name = f"Job-run1-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}-MATV-{material_version}-BAV-{bend_angle}-BRV-{bend_radius}"
+    job_name = f"Job-run1-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}-MATV-{material_version}-BAV-{bend_angle}-BRV-{bend_radius_name}"
     # EPT = Elements Per Thickness etc
 
     # Define the lines to prepend to the script
@@ -41,7 +43,7 @@ def create_and_run_script(elements_per_thickness=3, sheet_version=1, indenter_ve
     ]
 
     # Generate a unique script name for this run
-    iteration_script_name = f"{new_script_base_name}-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}-MATV-{material_version}-BAV-{bend_angle}-BRV-{bend_radius}.py"
+    iteration_script_name = f"{new_script_base_name}-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}-MATV-{material_version}-BAV-{bend_angle}-BRV-{bend_radius_name}.py"
 
     try:
         # Create/open the new script for writing
@@ -57,7 +59,7 @@ def create_and_run_script(elements_per_thickness=3, sheet_version=1, indenter_ve
         # Ensure the abaqus command is available in your system's PATH
         # Run with or without opening the GUI
 
-        abaqus_command = f"abaqus cae script={iteration_script_name}"
+        abaqus_command = f"abaqus cae noGUI={iteration_script_name}"
         # abaqus_command = f"abaqus cae script={iteration_script_name}"
 
         print(f"Running the script using Abaqus CAE: {abaqus_command}")

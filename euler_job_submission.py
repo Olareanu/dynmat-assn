@@ -13,7 +13,7 @@ with open(log_file, "a") as log:
 folder = "."
 
 # List all files in the folder starting with "Job-cov"
-job_files = [f for f in os.listdir(folder) if f.startswith("Job-conv-") and os.path.isfile(os.path.join(folder, f))]
+job_files = [f for f in os.listdir(folder) if f.startswith("Job-run1") and os.path.isfile(os.path.join(folder, f))]
 
 # Loop through all matched files
 for job_file in job_files:
