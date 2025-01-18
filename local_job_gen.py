@@ -100,14 +100,14 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
 
 if __name__ == "__main__":
     # Define the `elements_per_thickness` values to iterate over
-    elements_per_thickness_values = [2, 3, 4]  # Modify as needed
+    elements_per_thickness_values = [3]  # Modify as needed
 
     # Define the `sheet_version`
     # Version 4 with max 4 EPT!
-    sv_values = [1, 2]
+    sv_values = [1, 3]
 
     # Define indenter_version
-    idv_values = [2]
+    idv_values = [1]
 
     # Call the function to create and run scripts
     for sv in sv_values:

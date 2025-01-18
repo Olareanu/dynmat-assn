@@ -41,6 +41,10 @@ import os
 # # 4 simple sheet, uniform mesh, tetrahedron element
 #
 # sheet_material = 1
+# # 1 DP590
+# # 2 AA7020-T6
+# # 3 TRIP780
+#
 #
 # elements_per_thickness = 1
 # smallest_element_length = sheet_thickness / elements_per_thickness
@@ -49,7 +53,7 @@ import os
 #
 # # 1 cylindrical indenter
 # # 2 cylindrical indenter as rigid body
-#
+
 
 # Change working directory where inp files are generated
 os.chdir(r"C:\Temp\DirectoryName")
@@ -1264,14 +1268,28 @@ def step_setup():
     mdb.models['Model-1'].setValues(absoluteZero=-273.15)
 
     # Symetry BCs
-    a = mdb.models['Model-1'].rootAssembly
-    region = a.instances['Indenter-1'].sets['Set-Indenter-Zmin']
-    mdb.models['Model-1'].ZsymmBC(name='BC-indentZ', createStepName='Initial',
-                                  region=region, localCsys=None)
-    a = mdb.models['Model-1'].rootAssembly
-    region = a.instances['Indenter-1'].sets['Set-Indenter-Xmin']
-    mdb.models['Model-1'].XsymmBC(name='BC-indentX', createStepName='Initial',
-                                  region=region, localCsys=None)
+
+    if indenter_version == 1:
+
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter-Zmin']
+        mdb.models['Model-1'].ZsymmBC(name='BC-indentZ', createStepName='Initial',
+                                      region=region, localCsys=None)
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter-Xmin']
+        mdb.models['Model-1'].XsymmBC(name='BC-indentX', createStepName='Initial',
+                                      region=region, localCsys=None)
+
+    if indenter_version == 2:
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter-RP']
+        mdb.models['Model-1'].ZsymmBC(name='BC-indentZ', createStepName='Initial',
+                                      region=region, localCsys=None)
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter-RP']
+        mdb.models['Model-1'].XsymmBC(name='BC-indentX', createStepName='Initial',
+                                      region=region, localCsys=None)
+
     a = mdb.models['Model-1'].rootAssembly
     region = a.instances['Sheet-1'].sets['Set-Sheet-Zmin']
     mdb.models['Model-1'].ZsymmBC(name='BC-SheetZ', createStepName='Initial',
@@ -1342,11 +1360,11 @@ def step_setup():
                                                improvedDtMethod=ON)
 
     # Field outputs
-    mdb.models['Model-1'].fieldOutputRequests['F-Output-1'].setValues(
-        numIntervals=30)
     mdb.models['Model-1'].fieldOutputRequests['F-Output-1'].setValues(variables=(
-        'S', 'SVAVG', 'TRIAX', 'LODE', 'PE', 'PEVAVG', 'PEEQ', 'PEEQVAVG',
-        'LE', 'U', 'V', 'A', 'RF', 'CSTRESS', 'EVF', 'STATUS'))
+        'S', 'SVAVG', 'MISES', 'TRIAX', 'LODE', 'E', 'PE', 'PEVAVG', 'PEEQ',
+        'PEEQVAVG', 'LE', 'U', 'V', 'A', 'RF', 'HP', 'CSTRESS', 'ENER',
+        'DAMAGEC', 'DAMAGET', 'DAMAGESHR', 'TEMP', 'EVF', 'STATUS'),
+        timeInterval=1e-05)
 
     # History outputs using sets
 
@@ -1357,7 +1375,8 @@ def step_setup():
     regionDef = mdb.models['Model-1'].rootAssembly.allInstances['Sheet-1'].sets['Set-Sheet-Probes']
     mdb.models['Model-1'].HistoryOutputRequest(name='H-Output-Sheet',
                                                createStepName='Step-1', variables=('S11', 'S22', 'S33', 'S12', 'S13',
-                                                                                   'S23', 'SP', 'TRESC', 'PRESS',
+                                                                                   'S23', 'SP', 'MISES', 'TRESC',
+                                                                                   'PRESS',
                                                                                    'INV3', 'MISES', 'TRIAX', 'LODE',
                                                                                    'E11',
                                                                                    'E22', 'E33', 'E12', 'E13', 'E23',
@@ -1367,7 +1386,7 @@ def step_setup():
                                                                                    'V1', 'V2', 'V3', 'VR1', 'VR2',
                                                                                    'VR3', 'A1', 'A2', 'A3', 'AR1',
                                                                                    'AR2',
-                                                                                   'AR3', 'TEMP', 'STATUS'),
+                                                                                   'AR3', 'TEMP', 'STATUS', 'ENER'),
                                                region=regionDef, sectionPoints=DEFAULT,
                                                rebar=EXCLUDE)
 
