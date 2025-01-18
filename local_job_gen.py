@@ -1,7 +1,8 @@
 import os
 
 
-def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_version=1):
+def create_and_run_script(elements_per_thickness=3, sheet_version=1, indenter_version=1, material_version=1,
+                          bend_angle=25, bend_radius=10):
     # Define the name of the original script
     original_script_name = "abq_script_model.py"
 
@@ -13,19 +14,26 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
     # Define the base name of the new scripts
     new_script_base_name = "abq_temp_script"
 
-    # Dynamically create the job name
-    job_name = f"Job-conv-DP590-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}"  # EPT = Elements Per Thickness etc
+    # sheet thickness depends on material choice, for now
+    if material_version == 2:
+        thickness = 4
+    else:
+        thickness = 1.4
+
+        # Dynamically create the job name
+    job_name = f"Job-run1-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}-MATV-{material_version}-BAV-{bend_angle}-BRV-{bend_radius}"
+    # EPT = Elements Per Thickness etc
 
     # Define the lines to prepend to the script
     prepend_lines = [
         "# Prepended parameters\n",
         f"job_name = '{job_name}'  # Job name dynamically generated\n",
-        f"nr_cpus = 4\n"
+        f"nr_cpus = 2\n"
         f"sim_step_time = 0.0035\n"
-        f"bending_radius = 17.0  # Bending radius\n",
-        f"bending_angle = 25.0  # Bending angle\n",
-        f"sheet_thickness = 1.4  # Thickness\n",
-        f"sheet_material = 1 \n"
+        f"bending_radius = {bend_radius}  # Bending radius\n",
+        f"bending_angle = {bend_angle}  # Bending angle\n",
+        f"sheet_thickness ={thickness}  # Thickness\n",
+        f"sheet_material = {material_version} \n"
         f"sheet_version = {sheet_version}  # Sheet version (1: simple, 3: elliptical hole, etc.)\n",
         f"elements_per_thickness = {elements_per_thickness}  # Dynamic value being iterated\n",
         f"smallest_element_length = sheet_thickness / elements_per_thickness\n",
@@ -33,7 +41,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
     ]
 
     # Generate a unique script name for this run
-    iteration_script_name = f"{new_script_base_name}_SV_{sheet_version}_EPT_{elements_per_thickness}-IDV-{indenter_version}.py"
+    iteration_script_name = f"{new_script_base_name}-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}-MATV-{material_version}-BAV-{bend_angle}-BRV-{bend_radius}.py"
 
     try:
         # Create/open the new script for writing
@@ -49,7 +57,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
         # Ensure the abaqus command is available in your system's PATH
         # Run with or without opening the GUI
 
-        abaqus_command = f"abaqus cae noGUI={iteration_script_name}"
+        abaqus_command = f"abaqus cae script={iteration_script_name}"
         # abaqus_command = f"abaqus cae script={iteration_script_name}"
 
         print(f"Running the script using Abaqus CAE: {abaqus_command}")
@@ -107,10 +115,22 @@ if __name__ == "__main__":
     sv_values = [1, 3]
 
     # Define indenter_version
-    idv_values = [1]
+    idv_values = [2]
+
+    # Define material used
+    mat_values = [1, 2, 3]
+
+    # Define bend angle
+    bend_angle_values = [15, 30, 45]
+
+    # Define radius values
+    bend_radius_values = [5, 7.5, 10]
 
     # Call the function to create and run scripts
     for sv in sv_values:
         for ept in elements_per_thickness_values:
             for idv in idv_values:
-                create_and_run_script(ept, sv, idv)
+                for matv in mat_values:
+                    for bav in bend_angle_values:
+                        for brv in bend_radius_values:
+                            create_and_run_script(ept, sv, idv, matv, bav, brv)

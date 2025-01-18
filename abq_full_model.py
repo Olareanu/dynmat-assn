@@ -30,8 +30,8 @@ job_name = 'Job-full-model-1'
 nr_cpus = 4
 sim_step_time = 0.0035
 
-bending_radius = 17.0  # Bending radius
-bending_angle = 25.0  # Bending angle
+bending_radius = 10  # Bending radius
+bending_angle = 30  # Bending angle
 sheet_thickness = 1.4  # Thickness
 
 sheet_version = 1
@@ -621,7 +621,7 @@ def bottomSupport():
 
     p = mdb.models['Model-1'].parts['Support_bottom']
     e = p.edges
-    p.Round(radius=10.0, edgeList=(e[9], e[11]))
+    p.Round(radius=4, edgeList=(e[9], e[11]))
 
     p = mdb.models['Model-1'].parts['Support_bottom']
     f = p.faces
