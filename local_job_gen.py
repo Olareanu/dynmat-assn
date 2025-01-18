@@ -33,7 +33,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
     ]
 
     # Generate a unique script name for this run
-    iteration_script_name = f"{new_script_base_name}_SV_{sheet_version}_EPT_{elements_per_thickness}.py"
+    iteration_script_name = f"{new_script_base_name}_SV_{sheet_version}_EPT_{elements_per_thickness}-IDV-{indenter_version}.py"
 
     try:
         # Create/open the new script for writing
@@ -100,13 +100,14 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
 
 if __name__ == "__main__":
     # Define the `elements_per_thickness` values to iterate over
-    elements_per_thickness_values = [1, 2, 3, 4, 5]  # Modify as needed
+    elements_per_thickness_values = [2, 3, 4]  # Modify as needed
 
     # Define the `sheet_version`
-    sv_values = [1,2]
+    # Version 4 with max 4 EPT!
+    sv_values = [1, 2, 4]
 
     # Define indenter_version
-    idv_values = [1, 2, 4]
+    idv_values = [1, 2]
 
     # Call the function to create and run scripts
     for sv in sv_values:
