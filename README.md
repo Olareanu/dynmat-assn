@@ -10,11 +10,13 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 | `local_job_gen.py`        | Script to iterate through parameters and create `.inp` files using `abq_script_model.py`. |
 | `job_gen_log.txt`         | Log file with the names of all the generated jobs.                                        |
 | `euler_job_submission.py` | Script that loads all the jobs into the queue on euler.                                   |
+| `euler_job_status.py`     | Script that reads the `.sta` files of the jobs.                                           |
 | `euler_odb_extract.py`    | Script that extracts pictures and CSV files from ODB Databases.                           |
 | `local_plots_from_csv.py` | Script that generates plots from CSV files on euler.                                      |
 
 
-### Usage of convergence_job_gen.py:
+
+### Usage of scripts:
 - Set working directory and other parameters in `abq_script_model.py`
 - Decide what parameters you want to iterate trough and which ones are fixed in `local_job_gen.py`
 - Run `local_job_gen.py` (about 10 seconds per input file generated)
@@ -23,6 +25,7 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 - Load abaqus module on euler
 - Run `euler_job_submission.py` to submit all the `.inp` files that have a certain naming scheme, check generated log
 - Check queue state with `squeue`
+- Check status files by running `euler_job_status.py` on euler
 - After sims are done, run `euler_odb_extraction` with abaqus CAE then copy those new files back to local machine
 - Optionally run `local_plots_from_csv.py` to create some quick graphs out of the newly generated `.csv` files
 
@@ -37,6 +40,7 @@ squeue
 scancel <job_ID>
 scancel --state=PENDING
 scontrol show jobid –dd <job_ID>
+python3 euler_job_status.py
 abaqus cae noGUI=euler_odb_extract.py
 
 ```

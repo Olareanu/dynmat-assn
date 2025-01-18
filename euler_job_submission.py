@@ -23,10 +23,10 @@ for job_file in job_files:
     # Prepare the sbatch command
     command = [
         "sbatch",
-        "-n", "2",
+        "-n", "4",
         "-t", "1-0",
         "--mem-per-cpu", "2G",
-        "--wrap", f"abaqus job={job_name} double cpus=2 scratch=$TMPDIR"
+        "--wrap", f"abaqus job={job_name} double cpus=4 scratch=$TMPDIR"
     ]
 
     try:

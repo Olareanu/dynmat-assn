@@ -20,7 +20,7 @@ def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_vers
     prepend_lines = [
         "# Prepended parameters\n",
         f"job_name = '{job_name}'  # Job name dynamically generated\n",
-        f"nr_cpus = 2\n"
+        f"nr_cpus = 4\n"
         f"sim_step_time = 0.0035\n"
         f"bending_radius = 17.0  # Bending radius\n",
         f"bending_angle = 25.0  # Bending angle\n",
