@@ -1,7 +1,7 @@
 import os
 
 
-def create_and_run_script(elements_per_thickness, sheet_version=1):
+def create_and_run_script(elements_per_thickness, sheet_version=1, indenter_version=1):
     # Define the name of the original script
     original_script_name = "abq_script_model.py"
 
@@ -14,21 +14,22 @@ def create_and_run_script(elements_per_thickness, sheet_version=1):
     new_script_base_name = "abq_temp_script"
 
     # Dynamically create the job name
-    job_name = f"Job-conv-DP590-SV-{sheet_version}-EPT-{elements_per_thickness}"  # EPT = Elements Per Thickness
+    job_name = f"Job-conv-DP590-SV-{sheet_version}-EPT-{elements_per_thickness}-IDV-{indenter_version}"  # EPT = Elements Per Thickness etc
 
     # Define the lines to prepend to the script
     prepend_lines = [
         "# Prepended parameters\n",
         f"job_name = '{job_name}'  # Job name dynamically generated\n",
-        f"nr_cpus = 4\n"
+        f"nr_cpus = 2\n"
+        f"sim_step_time = 0.0035\n"
         f"bending_radius = 17.0  # Bending radius\n",
         f"bending_angle = 25.0  # Bending angle\n",
         f"sheet_thickness = 1.4  # Thickness\n",
         f"sheet_material = 1 \n"
-        f"sheet_version = {sheet_version}  # Sheet version (1: simple, 2: elliptical, etc.)\n",
+        f"sheet_version = {sheet_version}  # Sheet version (1: simple, 3: elliptical hole, etc.)\n",
         f"elements_per_thickness = {elements_per_thickness}  # Dynamic value being iterated\n",
         f"smallest_element_length = sheet_thickness / elements_per_thickness\n",
-        f"indenter_version = 1  # 1 cylindrical indenter, 2 spherical indenter\n\n"
+        f"indenter_version = {indenter_version}  # 1 cylindrical indenter, 2 rigid cylindrical indenter\n\n"
     ]
 
     # Generate a unique script name for this run
@@ -101,9 +102,14 @@ if __name__ == "__main__":
     # Define the `elements_per_thickness` values to iterate over
     elements_per_thickness_values = [1, 2, 3, 4, 5]  # Modify as needed
 
-    # Define the `sheet_version` (you can loop over versions if necessary)
-    sv = 1  # Example: Set this to 1 for now; iterate manually if needed.
+    # Define the `sheet_version`
+    sv_values = [1,2]
+
+    # Define indenter_version
+    idv_values = [1, 2, 4]
 
     # Call the function to create and run scripts
-    for ept in elements_per_thickness_values:
-        create_and_run_script(ept, sv)
+    for sv in sv_values:
+        for ept in elements_per_thickness_values:
+            for idv in idv_values:
+                create_and_run_script(ept, sv, idv)

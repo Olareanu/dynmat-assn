@@ -28,6 +28,7 @@ import os
 
 job_name = 'Job-full-model-1'
 nr_cpus = 4
+sim_step_time = 0.0035
 
 bending_radius = 17.0  # Bending radius
 bending_angle = 25.0  # Bending angle
@@ -35,19 +36,23 @@ sheet_thickness = 1.4  # Thickness
 
 sheet_version = 1
 # 1 simple sheet, uniform mesh, brick element
-# 2 simple sheet, variable element size
+# 2 simple sheet, variable element size. brick element
 # 3 elliptical hole
+# 4 simple sheet, uniform mesh, tetrahedron element
 
 sheet_material = 1
 
 elements_per_thickness = 1
 smallest_element_length = sheet_thickness / elements_per_thickness
 
-indenter_version = 1
-
+indenter_version = 2
 
 # 1 cylindrical indenter
-# 2 spherical indenter
+# 2 cylindrical indenter as rigid body
+
+
+# Change working directory where inp files are generated
+os.chdir(r"C:\Temp\DirectoryName")
 
 
 def material_import():
@@ -78,228 +83,466 @@ def enableElementDelition():
 
 
 def Indenter():
-    # Geometry
-    s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
-    g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
-    s.setPrimaryObject(option=STANDALONE)
-    s.ConstructionLine(point1=(0.0, 0.0), angle=90.0)
-    s.VerticalConstraint(entity=g[2], addUndoState=False)
-    s.ConstructionLine(point1=(0.0, 0.0), angle=0.0)
-    s.HorizontalConstraint(entity=g[3], addUndoState=False)
-    s.FixedConstraint(entity=g[3])
-    s.FixedConstraint(entity=g[2])
-    s.rectangle(point1=(-6.25, 7.5), point2=(3.75, 27.5))
-    s.SymmetryConstraint(entity1=v[0], entity2=v[3], symmetryAxis=g[2])
-    s.ObliqueDimension(vertex1=v[0], vertex2=v[1], textPoint=(-13.0767669677734, 16.1461334228516), value=71.76385276)
-    s.dragEntity(entity=v[1], points=((-6.25, 27.5), (-6.25, 27.5), (-6.25, 36.25),
-                                      (-6.93080139160156, 42.9226341247559), (-6.93080139160156, 43.3237800598145)))
-    s.dragEntity(entity=v[0], points=((-6.93080139160156, -28.4400727001855), (
-        -6.93080139160156, -28.75), (-6.25, -18.2521457672119), (-5.0, -7.5), (-5.0, 0.0), (-5.0, 4.61318206787109),
-                                      (-5.0, 7.5), (-5.0, 8.75), (-4.41963958740234, 10.0), (-4.31919860839844, 11.25),
-                                      (-5.0, 13.1375389099121), (-5.0, 12.5), (-5.0, 11.25), (-5.625, 11.25),
-                                      (-6.25, 11.25)))
+    if indenter_version == 1:
+        # Geometry
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=STANDALONE)
+        s.ConstructionLine(point1=(0.0, 0.0), angle=90.0)
+        s.VerticalConstraint(entity=g[2], addUndoState=False)
+        s.ConstructionLine(point1=(0.0, 0.0), angle=0.0)
+        s.HorizontalConstraint(entity=g[3], addUndoState=False)
+        s.FixedConstraint(entity=g[3])
+        s.FixedConstraint(entity=g[2])
+        s.rectangle(point1=(-6.25, 7.5), point2=(3.75, 27.5))
+        s.SymmetryConstraint(entity1=v[0], entity2=v[3], symmetryAxis=g[2])
+        s.ObliqueDimension(vertex1=v[0], vertex2=v[1], textPoint=(-13.0767669677734, 16.1461334228516),
+                           value=71.76385276)
+        s.dragEntity(entity=v[1], points=((-6.25, 27.5), (-6.25, 27.5), (-6.25, 36.25),
+                                          (-6.93080139160156, 42.9226341247559), (-6.93080139160156, 43.3237800598145)))
+        s.dragEntity(entity=v[0], points=((-6.93080139160156, -28.4400727001855), (
+            -6.93080139160156, -28.75), (-6.25, -18.2521457672119), (-5.0, -7.5), (-5.0, 0.0), (-5.0, 4.61318206787109),
+                                          (-5.0, 7.5), (-5.0, 8.75), (-4.41963958740234, 10.0),
+                                          (-4.31919860839844, 11.25),
+                                          (-5.0, 13.1375389099121), (-5.0, 12.5), (-5.0, 11.25), (-5.625, 11.25),
+                                          (-6.25, 11.25)))
 
-    s.ObliqueDimension(vertex1=v[1], vertex2=v[2], textPoint=(-2.63551330566406, 90.2025299072266), value=20.0)
+        s.ObliqueDimension(vertex1=v[1], vertex2=v[2], textPoint=(-2.63551330566406, 90.2025299072266), value=20.0)
 
-    s.autoTrimCurve(curve1=g[7], point1=(-3.98425960540771, 9.07618522644043))
-    s.autoTrimCurve(curve1=g[8], point1=(3.58603763580322, 9.31204414367676))
-    s.EqualLengthConstraint(entity1=g[4], entity2=g[6])
+        s.autoTrimCurve(curve1=g[7], point1=(-3.98425960540771, 9.07618522644043))
+        s.autoTrimCurve(curve1=g[8], point1=(3.58603763580322, 9.31204414367676))
+        s.EqualLengthConstraint(entity1=g[4], entity2=g[6])
 
-    s.CircleByCenterPerimeter(center=(0.0, 8.75), point1=(-10.0, 11.25))
-    s.CoincidentConstraint(entity1=v[5], entity2=g[2], addUndoState=False)
-    s.delete(objectList=(c[33],))
-    s.dragEntity(entity=v[5], points=((0.0, 8.75), (0.0, 8.75), (-1.25, 7.5), (
-        -1.25, 7.5), (-1.25, 7.5)))
-    s.dragEntity(entity=v[5], points=((-1.25, 7.5), (-1.25, 7.5), (-2.5, 11.25), (
-        -2.5, 12.5), (-2.5, 12.5), (-1.87182998657227, 11.25), (-1.25, 10.0), (-1.25, 8.75), (-1.25, 8.75),
-                                      (-1.25, 7.5),
-                                      (-1.25, 7.5), (0.0, 6.25), (-1.25, 7.5)))
-    s.CoincidentConstraint(entity1=v[3], entity2=g[9])
-    s.TangentConstraint(entity1=g[9], entity2=g[4])
-    s.TangentConstraint(entity1=g[9], entity2=g[6])
-    s.autoTrimCurve(curve1=g[9], point1=(-6.27261352539062, 17.2192115783691))
-    s.autoTrimCurve(curve1=g[10], point1=(4.47494888305664, 18.6082038879395))
-    s.DistanceDimension(entity1=v[0], entity2=g[3], textPoint=(-22.7920227050781,
-                                                               5.9749870300293), value=10.0)
+        s.CircleByCenterPerimeter(center=(0.0, 8.75), point1=(-10.0, 11.25))
+        s.CoincidentConstraint(entity1=v[5], entity2=g[2], addUndoState=False)
+        s.delete(objectList=(c[33],))
+        s.dragEntity(entity=v[5], points=((0.0, 8.75), (0.0, 8.75), (-1.25, 7.5), (
+            -1.25, 7.5), (-1.25, 7.5)))
+        s.dragEntity(entity=v[5], points=((-1.25, 7.5), (-1.25, 7.5), (-2.5, 11.25), (
+            -2.5, 12.5), (-2.5, 12.5), (-1.87182998657227, 11.25), (-1.25, 10.0), (-1.25, 8.75), (-1.25, 8.75),
+                                          (-1.25, 7.5),
+                                          (-1.25, 7.5), (0.0, 6.25), (-1.25, 7.5)))
+        s.CoincidentConstraint(entity1=v[3], entity2=g[9])
+        s.TangentConstraint(entity1=g[9], entity2=g[4])
+        s.TangentConstraint(entity1=g[9], entity2=g[6])
+        s.autoTrimCurve(curve1=g[9], point1=(-6.27261352539062, 17.2192115783691))
+        s.autoTrimCurve(curve1=g[10], point1=(4.47494888305664, 18.6082038879395))
+        s.DistanceDimension(entity1=v[0], entity2=g[3], textPoint=(-22.7920227050781,
+                                                                   5.9749870300293), value=10.0)
 
-    s.dragEntity(entity=g[11], points=((-2.8015100896558, 0.400440571695142), (
-        -2.5, 1.25), (-2.5, 2.5), (-2.5, 3.75), (-2.5, 3.75), (-2.5, 5.0), (
-                                           -2.5, 6.25), (-2.5, 6.25), (-2.5, 7.5), (-2.5, 8.75), (-2.5, 8.75), (
-                                           -2.5, 6.25), (-2.5, 6.25), (-2.5, 5.0), (-2.5, 5.0), (-2.5, 3.75), (
-                                           -2.5, 3.75), (-2.5, 2.5), (-2.5, 3.75), (-2.5, 5.0), (-2.5, 5.0)))
-    s.RadialDimension(curve=g[11], textPoint=(-10.5253391265869, 1.6152286529541),
-                      radius=10.0)
+        s.dragEntity(entity=g[11], points=((-2.8015100896558, 0.400440571695142), (
+            -2.5, 1.25), (-2.5, 2.5), (-2.5, 3.75), (-2.5, 3.75), (-2.5, 5.0), (
+                                               -2.5, 6.25), (-2.5, 6.25), (-2.5, 7.5), (-2.5, 8.75), (-2.5, 8.75), (
+                                               -2.5, 6.25), (-2.5, 6.25), (-2.5, 5.0), (-2.5, 5.0), (-2.5, 3.75), (
+                                               -2.5, 3.75), (-2.5, 2.5), (-2.5, 3.75), (-2.5, 5.0), (-2.5, 5.0)))
+        s.RadialDimension(curve=g[11], textPoint=(-10.5253391265869, 1.6152286529541),
+                          radius=10.0)
 
-    p = mdb.models['Model-1'].Part(name='Indenter',
-                                   dimensionality=THREE_D, type=DEFORMABLE_BODY)
-    p = mdb.models['Model-1'].parts['Indenter']
-    p.BaseSolidExtrude(sketch=s, depth=100.0)
-    s.unsetPrimaryObject()
-    p = mdb.models['Model-1'].parts['Indenter']
+        p = mdb.models['Model-1'].Part(name='Indenter',
+                                       dimensionality=THREE_D, type=DEFORMABLE_BODY)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.BaseSolidExtrude(sketch=s, depth=100.0)
+        s.unsetPrimaryObject()
+        p = mdb.models['Model-1'].parts['Indenter']
 
-    del mdb.models['Model-1'].sketches['__profile__']
+        del mdb.models['Model-1'].sketches['__profile__']
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    f, e1 = p.faces, p.edges
-    p.Mirror(mirrorPlane=f[5], keepOriginal=ON)
+        p = mdb.models['Model-1'].parts['Indenter']
+        f, e1 = p.faces, p.edges
+        p.Mirror(mirrorPlane=f[5], keepOriginal=ON)
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    f, e = p.faces, p.edges
-    t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[1],
-                              sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(0.0, 81.763853,
-                                                                                      0.0))
-    s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
-                                                sheetSize=433.98, gridSpacing=10.84, transform=t)
-    g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
-    s.setPrimaryObject(option=SUPERIMPOSE)
-    p = mdb.models['Model-1'].parts['Indenter']
-    p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        p = mdb.models['Model-1'].parts['Indenter']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[1],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(0.0, 81.763853,
+                                                                                          0.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=433.98, gridSpacing=10.84, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
 
-    s.Line(point1=(-100.0, 0.0), point2=(-100.0, 10.0))
-    s.VerticalConstraint(entity=g[8], addUndoState=False)
-    s.ParallelConstraint(entity1=g[4], entity2=g[8], addUndoState=False)
-    s.CoincidentConstraint(entity1=v[6], entity2=g[4], addUndoState=False)
-    s.EqualDistanceConstraint(entity1=v[3], entity2=v[4], midpoint=v[6],
-                              addUndoState=False)
-    s.Line(point1=(-100.0, 10.0), point2=(100.0, 10.0))
-    s.HorizontalConstraint(entity=g[9], addUndoState=False)
-    s.PerpendicularConstraint(entity1=g[8], entity2=g[9], addUndoState=False)
-    s.Line(point1=(100.0, 10.0), point2=(100.0, -10.0))
-    s.VerticalConstraint(entity=g[10], addUndoState=False)
-    s.PerpendicularConstraint(entity1=g[9], entity2=g[10], addUndoState=False)
-    s.Line(point1=(100.0, -10.0), point2=(0.0, -10.0))
-    s.HorizontalConstraint(entity=g[11], addUndoState=False)
-    s.PerpendicularConstraint(entity1=g[10], entity2=g[11], addUndoState=False)
-    s.Line(point1=(0.0, -10.0), point2=(0.0, 0.0))
-    s.VerticalConstraint(entity=g[12], addUndoState=False)
-    s.PerpendicularConstraint(entity1=g[11], entity2=g[12], addUndoState=False)
-    s.Line(point1=(0.0, 0.0), point2=(-100.0, 0.0))
-    s.HorizontalConstraint(entity=g[13], addUndoState=False)
-    s.PerpendicularConstraint(entity1=g[12], entity2=g[13], addUndoState=False)
-    p = mdb.models['Model-1'].parts['Indenter']
-    f1, e1 = p.faces, p.edges
-    p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[1], sketchPlaneSide=SIDE1,
-                 sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
-    s.unsetPrimaryObject()
-    del mdb.models['Model-1'].sketches['__profile__']
+        s.Line(point1=(-100.0, 0.0), point2=(-100.0, 10.0))
+        s.VerticalConstraint(entity=g[8], addUndoState=False)
+        s.ParallelConstraint(entity1=g[4], entity2=g[8], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[6], entity2=g[4], addUndoState=False)
+        s.EqualDistanceConstraint(entity1=v[3], entity2=v[4], midpoint=v[6],
+                                  addUndoState=False)
+        s.Line(point1=(-100.0, 10.0), point2=(100.0, 10.0))
+        s.HorizontalConstraint(entity=g[9], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[8], entity2=g[9], addUndoState=False)
+        s.Line(point1=(100.0, 10.0), point2=(100.0, -10.0))
+        s.VerticalConstraint(entity=g[10], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[9], entity2=g[10], addUndoState=False)
+        s.Line(point1=(100.0, -10.0), point2=(0.0, -10.0))
+        s.HorizontalConstraint(entity=g[11], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[10], entity2=g[11], addUndoState=False)
+        s.Line(point1=(0.0, -10.0), point2=(0.0, 0.0))
+        s.VerticalConstraint(entity=g[12], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[11], entity2=g[12], addUndoState=False)
+        s.Line(point1=(0.0, 0.0), point2=(-100.0, 0.0))
+        s.HorizontalConstraint(entity=g[13], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[12], entity2=g[13], addUndoState=False)
+        p = mdb.models['Model-1'].parts['Indenter']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[1], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
 
-    # Partitioning for meshing
+        # Partitioning for meshing
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    f1, e1, d1 = p.faces, p.edges, p.datums
-    t = p.MakeSketchTransform(sketchPlane=f1[1], sketchUpEdge=e1[1],
-                              sketchPlaneSide=SIDE1, origin=(0.0, 1e-06, 0.0))
-    s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
-                                                sheetSize=258.34, gridSpacing=6.45, transform=t)
-    g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
-    s.setPrimaryObject(option=SUPERIMPOSE)
-    p = mdb.models['Model-1'].parts['Indenter']
-    p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
-    s.rectangle(point1=(0.0, 0.0), point2=(-30.0, -10.0))
-    p = mdb.models['Model-1'].parts['Indenter']
-    f = p.faces
-    pickedFaces = f.getSequenceFromMask(mask=('[#2 ]',), )
-    e, d2 = p.edges, p.datums
-    p.PartitionFaceBySketch(sketchUpEdge=e[1], faces=pickedFaces, sketch=s)
-    s.unsetPrimaryObject()
-    del mdb.models['Model-1'].sketches['__profile__']
+        p = mdb.models['Model-1'].parts['Indenter']
+        f1, e1, d1 = p.faces, p.edges, p.datums
+        t = p.MakeSketchTransform(sketchPlane=f1[1], sketchUpEdge=e1[1],
+                                  sketchPlaneSide=SIDE1, origin=(0.0, 1e-06, 0.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=258.34, gridSpacing=6.45, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.rectangle(point1=(0.0, 0.0), point2=(-30.0, -10.0))
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        pickedFaces = f.getSequenceFromMask(mask=('[#2 ]',), )
+        e, d2 = p.edges, p.datums
+        p.PartitionFaceBySketch(sketchUpEdge=e[1], faces=pickedFaces, sketch=s)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    c = p.cells
-    pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
-    e1 = p.edges
-    pickedEdges = (e1[13],)
-    p.PartitionCellBySweepEdge(sweepPath=e1[6], cells=pickedCells,
-                               edges=pickedEdges)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        e1 = p.edges
+        pickedEdges = (e1[13],)
+        p.PartitionCellBySweepEdge(sweepPath=e1[6], cells=pickedCells,
+                                   edges=pickedEdges)
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    c = p.cells
-    pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
-    e = p.edges
-    pickedEdges = (e[10],)
-    p.PartitionCellBySweepEdge(sweepPath=e[8], cells=pickedCells,
-                               edges=pickedEdges)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        e = p.edges
+        pickedEdges = (e[10],)
+        p.PartitionCellBySweepEdge(sweepPath=e[8], cells=pickedCells,
+                                   edges=pickedEdges)
 
-    # Seed edges for meshing
+        # Seed edges for meshing
 
-    # Trough Thickness
-    p = mdb.models['Model-1'].parts['Indenter']
-    e = p.edges
-    pickedEdges = e.getSequenceFromMask(mask=('[#200 ]',), )
-    p.seedEdgeBySize(edges=pickedEdges, size=1.0, deviationFactor=0.1,
-                     constraint=FINER)
+        # Trough Thickness
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#200 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=1.0, deviationFactor=0.1,
+                         constraint=FINER)
 
-    # Detail region edges
-    p = mdb.models['Model-1'].parts['Indenter']
-    e = p.edges
-    pickedEdges = e.getSequenceFromMask(mask=('[#38503 ]',), )
-    p.seedEdgeBySize(edges=pickedEdges, size=1.0, deviationFactor=0.1,
-                     constraint=FINER)
-    # Biased Edges
-    p = mdb.models['Model-1'].parts['Indenter']
-    e = p.edges
-    pickedEdges1 = e.getSequenceFromMask(mask=('[#8 ]',), )
-    pickedEdges2 = e.getSequenceFromMask(mask=('[#a0 ]',), )
-    p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
-                     end2Edges=pickedEdges2, minSize=1.0, maxSize=8.0, constraint=FINER)
+        # Detail region edges
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#38503 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=1.0, deviationFactor=0.1,
+                         constraint=FINER)
+        # Biased Edges
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges1 = e.getSequenceFromMask(mask=('[#8 ]',), )
+        pickedEdges2 = e.getSequenceFromMask(mask=('[#a0 ]',), )
+        p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
+                         end2Edges=pickedEdges2, minSize=1.0, maxSize=8.0, constraint=FINER)
 
-    # Global Seeds
-    p = mdb.models['Model-1'].parts['Indenter']
-    p.seedPart(size=8.0, deviationFactor=0.1, minSizeFactor=0.1)
+        # Global Seeds
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.seedPart(size=8.0, deviationFactor=0.1, minSizeFactor=0.1)
 
-    # Mesh
+        # Mesh
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    c = p.cells
-    pickedRegions = c.getSequenceFromMask(mask=('[#2 ]',), )
-    p.setMeshControls(regions=pickedRegions, technique=SWEEP,
-                      algorithm=ADVANCING_FRONT)
-    p = mdb.models['Model-1'].parts['Indenter']
-    c = p.cells
-    pickedRegions = c.getSequenceFromMask(mask=('[#1 ]',), )
-    p.setMeshControls(regions=pickedRegions, technique=SWEEP,
-                      algorithm=ADVANCING_FRONT)
-    p = mdb.models['Model-1'].parts['Indenter']
-    c = p.cells
-    pickedRegions = c.getSequenceFromMask(mask=('[#4 ]',), )
-    p.setMeshControls(regions=pickedRegions, technique=SWEEP,
-                      algorithm=ADVANCING_FRONT)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#2 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#4 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    p.generateMesh()
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.generateMesh()
 
-    # Section assignment
+        # Section assignment
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    c = p.cells
-    cells = c.getSequenceFromMask(mask=('[#7 ]',), )
-    p.Set(cells=cells, name='Set-Indenter')
-    mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Indenter',
-                                                  material='Mars300', thickness=None)
-    p = mdb.models['Model-1'].parts['Indenter']
-    region = p.sets['Set-Indenter']
-    p = mdb.models['Model-1'].parts['Indenter']
-    p.SectionAssignment(region=region, sectionName='Section-Indenter', offset=0.0,
-                        offsetType=MIDDLE_SURFACE, offsetField='',
-                        thicknessAssignment=FROM_SECTION)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#7 ]',), )
+        p.Set(cells=cells, name='Set-Indenter')
+        mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Indenter',
+                                                      material='Mars300', thickness=None)
+        p = mdb.models['Model-1'].parts['Indenter']
+        region = p.sets['Set-Indenter']
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.SectionAssignment(region=region, sectionName='Section-Indenter', offset=0.0,
+                            offsetType=MIDDLE_SURFACE, offsetField='',
+                            thicknessAssignment=FROM_SECTION)
 
-    # Sets for symetry BC
+        # Sets for symetry BC
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    f = p.faces
-    faces = f.getSequenceFromMask(mask=('[#120 ]',), )
-    p.Set(faces=faces, name='Set-Indenter-Xmin')
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#120 ]',), )
+        p.Set(faces=faces, name='Set-Indenter-Xmin')
 
-    p = mdb.models['Model-1'].parts['Indenter']
-    f = p.faces
-    faces = f.getSequenceFromMask(mask=('[#2c0 ]',), )
-    p.Set(faces=faces, name='Set-Indenter-Zmin')
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2c0 ]',), )
+        p.Set(faces=faces, name='Set-Indenter-Zmin')
 
-    # Set for History output
-    p = mdb.models['Model-1'].parts['Indenter']
-    v = p.vertices
-    verts = v.getSequenceFromMask(mask=('[#200 ]',), )
-    p.Set(vertices=verts, name='Set-Indenter-Probe-Top')
+        # Set for History output
+        p = mdb.models['Model-1'].parts['Indenter']
+        v = p.vertices
+        verts = v.getSequenceFromMask(mask=('[#200 ]',), )
+        p.Set(vertices=verts, name='Set-Indenter-Probe-Top')
+
+    if indenter_version == 2:
+        # Geometry
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=STANDALONE)
+        s.ConstructionLine(point1=(0.0, 0.0), angle=90.0)
+        s.VerticalConstraint(entity=g[2], addUndoState=False)
+        s.ConstructionLine(point1=(0.0, 0.0), angle=0.0)
+        s.HorizontalConstraint(entity=g[3], addUndoState=False)
+        s.FixedConstraint(entity=g[3])
+        s.FixedConstraint(entity=g[2])
+        s.rectangle(point1=(-6.25, 7.5), point2=(3.75, 27.5))
+        s.SymmetryConstraint(entity1=v[0], entity2=v[3], symmetryAxis=g[2])
+        s.ObliqueDimension(vertex1=v[0], vertex2=v[1], textPoint=(-13.0767669677734, 16.1461334228516),
+                           value=71.76385276)
+        s.dragEntity(entity=v[1], points=((-6.25, 27.5), (-6.25, 27.5), (-6.25, 36.25),
+                                          (-6.93080139160156, 42.9226341247559), (-6.93080139160156, 43.3237800598145)))
+        s.dragEntity(entity=v[0], points=((-6.93080139160156, -28.4400727001855), (
+            -6.93080139160156, -28.75), (-6.25, -18.2521457672119), (-5.0, -7.5), (-5.0, 0.0), (-5.0, 4.61318206787109),
+                                          (-5.0, 7.5), (-5.0, 8.75), (-4.41963958740234, 10.0),
+                                          (-4.31919860839844, 11.25),
+                                          (-5.0, 13.1375389099121), (-5.0, 12.5), (-5.0, 11.25), (-5.625, 11.25),
+                                          (-6.25, 11.25)))
+
+        s.ObliqueDimension(vertex1=v[1], vertex2=v[2], textPoint=(-2.63551330566406, 90.2025299072266), value=20.0)
+
+        s.autoTrimCurve(curve1=g[7], point1=(-3.98425960540771, 9.07618522644043))
+        s.autoTrimCurve(curve1=g[8], point1=(3.58603763580322, 9.31204414367676))
+        s.EqualLengthConstraint(entity1=g[4], entity2=g[6])
+
+        s.CircleByCenterPerimeter(center=(0.0, 8.75), point1=(-10.0, 11.25))
+        s.CoincidentConstraint(entity1=v[5], entity2=g[2], addUndoState=False)
+        s.delete(objectList=(c[33],))
+        s.dragEntity(entity=v[5], points=((0.0, 8.75), (0.0, 8.75), (-1.25, 7.5), (
+            -1.25, 7.5), (-1.25, 7.5)))
+        s.dragEntity(entity=v[5], points=((-1.25, 7.5), (-1.25, 7.5), (-2.5, 11.25), (
+            -2.5, 12.5), (-2.5, 12.5), (-1.87182998657227, 11.25), (-1.25, 10.0), (-1.25, 8.75), (-1.25, 8.75),
+                                          (-1.25, 7.5),
+                                          (-1.25, 7.5), (0.0, 6.25), (-1.25, 7.5)))
+        s.CoincidentConstraint(entity1=v[3], entity2=g[9])
+        s.TangentConstraint(entity1=g[9], entity2=g[4])
+        s.TangentConstraint(entity1=g[9], entity2=g[6])
+        s.autoTrimCurve(curve1=g[9], point1=(-6.27261352539062, 17.2192115783691))
+        s.autoTrimCurve(curve1=g[10], point1=(4.47494888305664, 18.6082038879395))
+        s.DistanceDimension(entity1=v[0], entity2=g[3], textPoint=(-22.7920227050781,
+                                                                   5.9749870300293), value=10.0)
+
+        s.dragEntity(entity=g[11], points=((-2.8015100896558, 0.400440571695142), (
+            -2.5, 1.25), (-2.5, 2.5), (-2.5, 3.75), (-2.5, 3.75), (-2.5, 5.0), (
+                                               -2.5, 6.25), (-2.5, 6.25), (-2.5, 7.5), (-2.5, 8.75), (-2.5, 8.75), (
+                                               -2.5, 6.25), (-2.5, 6.25), (-2.5, 5.0), (-2.5, 5.0), (-2.5, 3.75), (
+                                               -2.5, 3.75), (-2.5, 2.5), (-2.5, 3.75), (-2.5, 5.0), (-2.5, 5.0)))
+        s.RadialDimension(curve=g[11], textPoint=(-10.5253391265869, 1.6152286529541),
+                          radius=10.0)
+
+        p = mdb.models['Model-1'].Part(name='Indenter',
+                                       dimensionality=THREE_D, type=DEFORMABLE_BODY)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.BaseSolidExtrude(sketch=s, depth=100.0)
+        s.unsetPrimaryObject()
+        p = mdb.models['Model-1'].parts['Indenter']
+
+        del mdb.models['Model-1'].sketches['__profile__']
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        f, e1 = p.faces, p.edges
+        p.Mirror(mirrorPlane=f[5], keepOriginal=ON)
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[1],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(0.0, 81.763853,
+                                                                                          0.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=433.98, gridSpacing=10.84, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+
+        s.Line(point1=(-100.0, 0.0), point2=(-100.0, 10.0))
+        s.VerticalConstraint(entity=g[8], addUndoState=False)
+        s.ParallelConstraint(entity1=g[4], entity2=g[8], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[6], entity2=g[4], addUndoState=False)
+        s.EqualDistanceConstraint(entity1=v[3], entity2=v[4], midpoint=v[6],
+                                  addUndoState=False)
+        s.Line(point1=(-100.0, 10.0), point2=(100.0, 10.0))
+        s.HorizontalConstraint(entity=g[9], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[8], entity2=g[9], addUndoState=False)
+        s.Line(point1=(100.0, 10.0), point2=(100.0, -10.0))
+        s.VerticalConstraint(entity=g[10], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[9], entity2=g[10], addUndoState=False)
+        s.Line(point1=(100.0, -10.0), point2=(0.0, -10.0))
+        s.HorizontalConstraint(entity=g[11], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[10], entity2=g[11], addUndoState=False)
+        s.Line(point1=(0.0, -10.0), point2=(0.0, 0.0))
+        s.VerticalConstraint(entity=g[12], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[11], entity2=g[12], addUndoState=False)
+        s.Line(point1=(0.0, 0.0), point2=(-100.0, 0.0))
+        s.HorizontalConstraint(entity=g[13], addUndoState=False)
+        s.PerpendicularConstraint(entity1=g[12], entity2=g[13], addUndoState=False)
+        p = mdb.models['Model-1'].parts['Indenter']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[1], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+
+        # Partitioning for meshing
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        f1, e1, d1 = p.faces, p.edges, p.datums
+        t = p.MakeSketchTransform(sketchPlane=f1[1], sketchUpEdge=e1[1],
+                                  sketchPlaneSide=SIDE1, origin=(0.0, 1e-06, 0.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=258.34, gridSpacing=6.45, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.rectangle(point1=(0.0, 0.0), point2=(-30.0, -10.0))
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        pickedFaces = f.getSequenceFromMask(mask=('[#2 ]',), )
+        e, d2 = p.edges, p.datums
+        p.PartitionFaceBySketch(sketchUpEdge=e[1], faces=pickedFaces, sketch=s)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        e1 = p.edges
+        pickedEdges = (e1[13],)
+        p.PartitionCellBySweepEdge(sweepPath=e1[6], cells=pickedCells,
+                                   edges=pickedEdges)
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        e = p.edges
+        pickedEdges = (e[10],)
+        p.PartitionCellBySweepEdge(sweepPath=e[8], cells=pickedCells,
+                                   edges=pickedEdges)
+
+        # Seed edges for meshing
+
+        # Trough Thickness
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#200 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=3.0, deviationFactor=0.1,
+                         constraint=FINER)
+
+        # Detail region edges
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#38503 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=1.0, deviationFactor=0.1,
+                         constraint=FINER)
+        # Biased Edges
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges1 = e.getSequenceFromMask(mask=('[#8 ]',), )
+        pickedEdges2 = e.getSequenceFromMask(mask=('[#a0 ]',), )
+        p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
+                         end2Edges=pickedEdges2, minSize=1.0, maxSize=12.0, constraint=FINER)
+
+        # Global Seeds
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.seedPart(size=12.0, deviationFactor=0.1, minSizeFactor=0.1)
+
+        # Mesh
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#2 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#4 ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP,
+                          algorithm=ADVANCING_FRONT)
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.generateMesh()
+
+        # Section assignment
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#7 ]',), )
+        p.Set(cells=cells, name='Set-Indenter')
+        mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Indenter',
+                                                      material='Mars300', thickness=None)
+        p = mdb.models['Model-1'].parts['Indenter']
+        region = p.sets['Set-Indenter']
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.SectionAssignment(region=region, sectionName='Section-Indenter', offset=0.0,
+                            offsetType=MIDDLE_SURFACE, offsetField='',
+                            thicknessAssignment=FROM_SECTION)
+
+        # Sets for symetry BC
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#120 ]',), )
+        p.Set(faces=faces, name='Set-Indenter-Xmin')
+
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2c0 ]',), )
+        p.Set(faces=faces, name='Set-Indenter-Zmin')
+
+        # Set for History output
+        p = mdb.models['Model-1'].parts['Indenter']
+        v = p.vertices
+        verts = v.getSequenceFromMask(mask=('[#200 ]',), )
+        p.Set(vertices=verts, name='Set-Indenter-Probe-Top')
+
+        # Reference point for ridig body constrain
+        p = mdb.models['Model-1'].parts['Indenter']
+        v1, e, d1, n = p.vertices, p.edges, p.datums, p.nodes
+        p.ReferencePoint(point=v1[6])
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[19],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-RP')
 
 
 def bottomSupport():
@@ -885,6 +1128,78 @@ def sheet():
         faces = f.getSequenceFromMask(mask=('[#4000 ]',), )
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
+    if sheet_version == 4:
+        # Still Partitioning as it gives a better mesh
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[7], point2=v1[13],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[8], rule=MIDDLE))
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v, e, d = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v[11], point2=v[6], cells=pickedCells,
+                                          point3=p.InterestingPoint(edge=e[18], rule=MIDDLE))
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[23], rule=MIDDLE))
+
+        # Seeding and meshing
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, elemShape=TET, technique=FREE)
+        elemType1 = mesh.ElemType(elemCode=C3D20R)
+        elemType2 = mesh.ElemType(elemCode=C3D15)
+        elemType3 = mesh.ElemType(elemCode=C3D10)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        pickedRegions = (cells,)
+        p.setElementType(regions=pickedRegions, elemTypes=(elemType1, elemType2,
+                                                           elemType3))
+        elemType1 = mesh.ElemType(elemCode=UNKNOWN_HEX, elemLibrary=EXPLICIT)
+        elemType2 = mesh.ElemType(elemCode=UNKNOWN_WEDGE, elemLibrary=EXPLICIT)
+        elemType3 = mesh.ElemType(elemCode=C3D10, elemLibrary=EXPLICIT,
+                                  secondOrderAccuracy=OFF, distortionControl=DEFAULT)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        pickedRegions = (cells,)
+        p.setElementType(regions=pickedRegions, elemTypes=(elemType1, elemType2,
+                                                           elemType3))
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+        # Generate set with entire sheet
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+
+        # Sets for Symetry BCs
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#100124 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+
     # Section assgnemnet using set-sheet
     if sheet_material == 1:
         mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='DP590', thickness=None)
@@ -892,7 +1207,7 @@ def sheet():
     if sheet_material == 2:
         mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='AA7020-T6', thickness=None)
 
-    if sheet_material ==3:
+    if sheet_material == 3:
         mdb.models['Model-1'].HomogeneousSolidSection(name='Section-Sheet', material='TRIP780', thickness=None)
 
     p = mdb.models['Model-1'].parts['Sheet']
@@ -929,9 +1244,6 @@ def assembly():
     a.Instance(name='Support_top-1', part=p, dependent=ON)
 
     a = mdb.models['Model-1'].rootAssembly
-    a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 0.0))
-
-    a = mdb.models['Model-1'].rootAssembly
     a.translate(instanceList=('Support_top-1',), vector=(0.0, 0.0, 70.0))
 
     a = mdb.models['Model-1'].rootAssembly
@@ -939,6 +1251,15 @@ def assembly():
 
 
 def step_setup():
+    # make Indenter ridig body if needed
+    if indenter_version == 2:
+        a = mdb.models['Model-1'].rootAssembly
+        region2 = a.instances['Indenter-1'].sets['Set-Indenter']
+        a = mdb.models['Model-1'].rootAssembly
+        region1 = a.instances['Indenter-1'].sets['Set-Indenter-RP']
+        mdb.models['Model-1'].RigidBody(name='Constraint-Indenter-Rigid',
+                                        refPointRegion=region1, bodyRegion=region2, refPointAtCOM=ON)
+
     # absolute zero
     mdb.models['Model-1'].setValues(absoluteZero=-273.15)
 
@@ -960,7 +1281,7 @@ def step_setup():
     mdb.models['Model-1'].XsymmBC(name='BC-SheetX', createStepName='Initial',
                                   region=region, localCsys=None)
 
-    # Rigid BCs
+    # Encastre BCs for supports
 
     a = mdb.models['Model-1'].rootAssembly
     region = a.instances['Support_bottom-1'].sets['Set-BotSup_RP']
@@ -987,11 +1308,21 @@ def step_setup():
         stepName='Initial', assignments=((GLOBAL, SELF, 'IntProp-gen'),))
 
     # Predefined fields
-    a = mdb.models['Model-1'].rootAssembly
-    region = a.instances['Indenter-1'].sets['Set-Indenter']
-    mdb.models['Model-1'].Velocity(name='Predefined Field-indent-Vel',
-                                   region=region, field='', distributionType=MAGNITUDE,
-                                   velocity2=-10000.0, omega=0.0)
+
+    if indenter_version == 1:
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter']
+        mdb.models['Model-1'].Velocity(name='Predefined Field-indent-Vel',
+                                       region=region, field='', distributionType=MAGNITUDE,
+                                       velocity2=-10000.0, omega=0.0)
+
+    if indenter_version == 2:
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter-RP']
+        mdb.models['Model-1'].Velocity(name='Predefined Field-indent-Vel',
+                                       region=region, field='', distributionType=MAGNITUDE,
+                                       velocity2=-10000.0, omega=0.0)
+
     a = mdb.models['Model-1'].rootAssembly
     region = a.instances['Indenter-1'].sets['Set-Indenter']
     mdb.models['Model-1'].Temperature(name='Predefined Field-indent-Temp',
@@ -1006,7 +1337,8 @@ def step_setup():
                                                                                                        ))
 
     # Step 1
-    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=0.0035, adiabatic=ON,
+    mdb.models['Model-1'].ExplicitDynamicsStep(name='Step-1', previous='Initial', timePeriod=sim_step_time,
+                                               adiabatic=ON,
                                                improvedDtMethod=ON)
 
     # Field outputs
@@ -1052,9 +1384,6 @@ def create_job():
             numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=nr_cpus)
     mdb.jobs[job_name].writeInput(consistencyChecking=OFF)
 
-
-# Change working directory where inp files are generated
-os.chdir(r"C:\Temp\DirectoryName")
 
 material_import()
 enableElementDelition()
