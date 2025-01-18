@@ -1364,7 +1364,7 @@ def step_setup():
         'S', 'SVAVG', 'MISES', 'TRIAX', 'LODE', 'E', 'PE', 'PEVAVG', 'PEEQ',
         'PEEQVAVG', 'LE', 'U', 'V', 'A', 'RF', 'HP', 'CSTRESS', 'ENER',
         'DAMAGEC', 'DAMAGET', 'DAMAGESHR', 'TEMP', 'EVF', 'STATUS'),
-        timeInterval=1e-05)
+        timeInterval=1e-04)
 
     # History outputs using sets
 
