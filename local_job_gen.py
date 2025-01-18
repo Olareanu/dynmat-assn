@@ -104,10 +104,10 @@ if __name__ == "__main__":
 
     # Define the `sheet_version`
     # Version 4 with max 4 EPT!
-    sv_values = [1, 2, 4]
+    sv_values = [1, 2]
 
     # Define indenter_version
-    idv_values = [1, 2]
+    idv_values = [2]
 
     # Call the function to create and run scripts
     for sv in sv_values:
