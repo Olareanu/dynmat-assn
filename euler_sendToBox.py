@@ -6,7 +6,7 @@ import shlex
 file_prefix = "Job-conv-DP590-"  # Change this to the prefix you want to filter by
 file_extension = ""  # Change this to None if no file extension filter is required
 storagebox_url = "u443450.your-storagebox.de"
-remote_folder = "DynMat_Main/Convergence_run_4"  # Folder on the remote storage box
+remote_folder = "Run_0"  # Folder on the remote storage box
 username = "your_username"  # Username for the storage box
 port = 23  # Port for rsync connection
 
