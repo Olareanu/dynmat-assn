@@ -41,7 +41,7 @@ def transfer_files(selected_files, port):
 
     # Include all selected files in the rsync command
     file_list = " ".join(shlex.quote(file_name) for file_name in selected_files)
-    rsync_command = f"rsync -e 'ssh -p {port}' -az {file_list} {remote_path}"
+    rsync_command = f"rsync -e 'ssh -p {port}' -avz {file_list} {remote_path}"
 
     try:
         print("Transferring files (with compression)...")
@@ -50,8 +50,6 @@ def transfer_files(selected_files, port):
             rsync_command,  # Command as a single string (shell-style command)
             shell=True,
             check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
         )
         print("All files transferred successfully.")
     except subprocess.CalledProcessError as e:
