@@ -26,7 +26,6 @@ def parse_status_and_memory(sta_file, simdir_folder):
     try:
         with open(sta_file, 'r') as f:
             lines = f.readlines()
-
         # Check if the file is empty
         if not lines:  # Empty file
             if status != "Running":  # If not "Running," it must be "Failed"
@@ -67,15 +66,12 @@ def check_job_status_and_time(job_directory):
     # Find all .sta files in the directory
     sta_files = glob.glob(os.path.join(job_directory, '*.sta'))
     results = []
-
     for sta_file in sta_files:
         job_name = os.path.splitext(os.path.basename(sta_file))[0]
         simdir_folder = os.path.join(job_directory, f"{job_name}.simdir")
-
         # Check the status and memory usage
         status, wallclock_time_seconds, wallclock_time_hours, memory_used = parse_status_and_memory(sta_file,
                                                                                                     simdir_folder)
-
         # Append result for this job
         result = {
             'Job Name': job_name,
@@ -85,7 +81,6 @@ def check_job_status_and_time(job_directory):
             'Memory Used': memory_used
         }
         results.append(result)
-
     return results
 
 
@@ -95,6 +90,9 @@ if __name__ == "__main__":
 
     # Run the function to check job statuses and times
     job_results = check_job_status_and_time(script_directory)
+
+    # Sort the results alphabetically by job name
+    job_results = sorted(job_results, key=lambda x: x['Job Name'])
 
     # Print the results
     for result in job_results:

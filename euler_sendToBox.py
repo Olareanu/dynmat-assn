@@ -3,12 +3,12 @@ import subprocess
 import shlex
 
 # Configuration
-file_prefix = "Job"  # Change this to the prefix you want to filter by
-file_extension = ".odb"  # Change this to None if no file extension filter is required
-storagebox_url = "your_username.your-storagebox.de"
-remote_folder = "DynMat_Main/SSH_Test"  # Folder on the remote storage box
+file_prefix = "Job-conv-DP590-"  # Change this to the prefix you want to filter by
+file_extension = ""  # Change this to None if no file extension filter is required
+storagebox_url = "u443450.your-storagebox.de"
+remote_folder = "DynMat_Main/Convergence_run_4"  # Folder on the remote storage box
 username = "your_username"  # Username for the storage box
-port = 22  # Port for SCP connection (default changed to 23 for your setup)
+port = 22  # Port for SCP connection
 
 
 def select_files(current_folder, prefix, extension):
@@ -31,32 +31,36 @@ def transfer_files(selected_files, port):
     """
     Transfer the given files to the remote storage box using SCP.
 
+    All files are included in a single SCP command to avoid multiple password prompts.
+
     :param selected_files: A list of filenames to transfer.
     :param port: The port to use for the SCP connection.
     """
-    for file_name in selected_files:
-        remote_path = f"{username}@{storagebox_url}:{remote_folder}"
+    # Build a single SCP command with all filenames
+    remote_path = f"{username}@{storagebox_url}:{remote_folder}"
 
-        # Create the SCP command with the specified port, only using relative filenames
-        scp_command = f"scp -P {port} {shlex.quote(file_name)} {shlex.quote(remote_path)}"
+    # Include all selected files in the SCP command
+    file_list = " ".join(shlex.quote(file_name) for file_name in selected_files)
+    scp_command = f"scp -P {port} {file_list} {shlex.quote(remote_path)}"
 
-        try:
-            print(f"Transferring {file_name}...")
-            # Run the SCP command; the user will be prompted to enter their password
-            process = subprocess.run(
-                scp_command.split(),
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            print(f"{file_name} transferred successfully.")
-        except subprocess.CalledProcessError as e:
-            # Print the error return code and error message
-            print(f"Error transferring {file_name} (status code {e.returncode}):\n")
-            print("STDERR:")
-            print(e.stderr.decode())
-            print("STDOUT:")
-            print(e.stdout.decode())
+    try:
+        print("Transferring files...")
+        # Run the SCP command; the user will be prompted to enter their password once
+        process = subprocess.run(
+            scp_command,  # Command as a single string (shell-style command)
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        print("All files transferred successfully.")
+    except subprocess.CalledProcessError as e:
+        # Print the error return code and error message
+        print(f"Error transferring files (status code {e.returncode}):\n")
+        print("STDERR:")
+        print(e.stderr.decode())
+        print("STDOUT:")
+        print(e.stdout.decode())
 
 
 def main():
