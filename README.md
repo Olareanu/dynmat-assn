@@ -13,6 +13,8 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 | `euler_job_status.py`     | Script that reads the `.sta` files of the jobs.                                           |
 | `euler_odb_extract.py`    | Script that extracts pictures and CSV files from ODB Databases.                           |
 | `local_plots_from_csv.py` | Script that generates plots from CSV files on euler.                                      |
+| `euler_sendToBox.py`      | Script that sends files straight to the storage box through ssh.                          |
+
 
 
 
@@ -27,6 +29,7 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 - Check queue state with `squeue`
 - Check status files by running `euler_job_status.py` on euler
 - After sims are done, run `euler_odb_extraction` with abaqus CAE then copy those new files back to local machine
+- Optionally run `euler_sendToBox.py` to send files matching some naming scheme straight to the storage box
 - Optionally run `local_plots_from_csv.py` to create some quick graphs out of the newly generated `.csv` files
 
 Useful euler commands and things to know:
