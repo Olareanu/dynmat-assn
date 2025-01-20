@@ -25,7 +25,7 @@ for job_file in job_files:
         "sbatch",
         "-n", "2",
         "-t", "1-0",
-        "--mem-per-cpu", "2G",
+        "--mem-per-cpu", "2560"
         "--wrap", f"abaqus job={job_name} double cpus=2 scratch=$TMPDIR"
     ]
 
