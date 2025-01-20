@@ -34,7 +34,7 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 - Run `euler_job_submission.py` to submit all the `.inp` files that have a certain naming scheme, check generated log
 - Check queue state with `squeue`
 - Check status files by running `euler_job_status.py` on euler
-- After sims are done, run `euler_odb_extraction` with abaqus CAE then copy those new files back to local machine
+- After sims are done, run `euler_odb_extraction` **with abaqus CAE** then copy those new files back to local machine
 - Optionally run `euler_sendToBox.py` to send files matching some naming scheme straight to the storage box
 - Optionally run `local_plots_from_csv.py` to create some quick graphs out of the newly generated `.csv` files
 
