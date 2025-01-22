@@ -179,16 +179,15 @@ def capture_deformed_field(odb, image_filename, output_folder):
 
 # Main script
 def main():
-    parser = argparse.ArgumentParser(description="Process ODB files.")
-    parser.add_argument('--filter', type=str, default=None, help="Filter ODB files by a substring in their names.")
-    args = parser.parse_args()
 
     # Get all ODB files in the current directory
     odb_files = [f for f in os.listdir('.') if f.endswith('.odb')]
 
     # Filter ODB files if a filter string is provided
-    if args.filter:
-        odb_files = [f for f in odb_files if args.filter in f]
+    print(sys.argv)
+    if len(sys.argv) > 10:
+        odb_files = [f for f in odb_files if sys.argv[-1] in f]
+        print("hello bro")
 
     # Ensure there is at least one ODB file
     if not odb_files:
