@@ -1270,7 +1270,6 @@ def step_setup():
     # Symetry BCs
 
     if indenter_version == 1:
-
         a = mdb.models['Model-1'].rootAssembly
         region = a.instances['Indenter-1'].sets['Set-Indenter-Zmin']
         mdb.models['Model-1'].ZsymmBC(name='BC-indentZ', createStepName='Initial',
@@ -1404,6 +1403,21 @@ def create_job():
     mdb.jobs[job_name].writeInput(consistencyChecking=OFF)
 
 
+def get_sheet_mass():
+    # Get the part object
+    p = mdb.models['Model-1'].parts['Sheet']
+
+    # Query the mass properties
+    mass_properties = p.getMassProperties()
+
+    # Extract the mass
+    mass = mass_properties.get('mass', 'None')
+
+    # Append the job name and mass to the file
+    with open('massData.txt', 'a') as file:
+        file.write(f"{job_name},{mass}\n")
+
+
 material_import()
 enableElementDelition()
 Indenter()
@@ -1413,5 +1427,6 @@ topSupport()
 assembly()
 step_setup()
 create_job()
+# get_sheet_mass()
 
 # mdb.jobs['Job-1'].submit(consistencyChecking=OFF)
