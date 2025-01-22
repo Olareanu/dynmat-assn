@@ -1,6 +1,7 @@
 from __future__ import print_function  # For Python 2.7 print function compatibility
 import os
 import sys
+import time
 
 from odbAccess import openOdb
 from abaqus import *
@@ -225,16 +226,30 @@ def main():
         odb = openOdb(path=odb_file)
 
         # Export history outputs by region to a folder
+        print("Joining paths")
+        begin = time.time()
         output_folder = os.path.join(".", os.path.splitext(odb_file)[0] + "_history_outputs")
+        print("Joining paths. Done in {}".format(begin - time.time()))
+
+        print("Exporting history outputs")
+        begin = time.time()
         export_history_outputs_by_region(odb, output_folder)
+        print("Exporting history outputs. Done in {}".format(begin - time.time()))
 
         field_name = "{}".format(os.path.splitext(odb_file)[0])
 
+        print("Exporting field outputs")
+        begin = time.time()
         export_field_outputs_of_deleted_element(odb, field_name, output_folder)
+        print("Exporting field outputs. Done in {}".format(begin - time.time()))
 
         # Capture the deformed field image
         image_filename = "{}_deformed".format(os.path.splitext(odb_file)[0])
+
+        print("Capturing deformed field")
+        begin = time.time()
         capture_deformed_field(odb, image_filename, output_folder)
+        print("Capturing deformed field. Done in {}".format(begin - time.time()))
 
         # Close the ODB file
         odb.close()
