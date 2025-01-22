@@ -1,8 +1,7 @@
-from __future__ import print_function  # For Python 2.7 print function compatibility
 import os
 import sys
 import time
-
+import argparse
 from odbAccess import openOdb
 from abaqus import *
 from abaqusConstants import *
@@ -23,8 +22,6 @@ import job
 import sketch
 import visualization
 import xyPlot
-import os
-import csv
 import displayGroupOdbToolset as dgo
 import connectorBehavior
 
@@ -36,22 +33,18 @@ def is_python2():
 # Function to export history outputs for each region to separate CSV files
 def export_history_outputs_by_region(odb, output_folder):
     print("Extracting history outputs by region into {}...".format(output_folder))
-
     try:
         # Get the first step from the ODB
         step_name = list(odb.steps.keys())[0]
         step = odb.steps[step_name]
-
         # Ensure the output folder exists
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
-
         # Process each region that has history outputs
         for history_region_key, history_region in step.historyRegions.items():
             # Create a CSV file for this region
             region_name = history_region_key.replace("/", "_")  # Replace unsupported characters in filenames
             csv_filename = os.path.join(output_folder, "{}.csv".format(region_name))
-
             # Collect data for this region
             history_data = {}
             time_set = set()
@@ -59,20 +52,16 @@ def export_history_outputs_by_region(odb, output_folder):
                 data = history_output.data
                 history_data[history_output_key] = data
                 time_set.update([time for time, _ in data])  # Collect all unique times
-
             # Sort times
             sorted_time = sorted(time_set)
-
             # Write region data to the CSV file
             mode = 'wb' if is_python2() else 'w'
             kwargs = {} if is_python2() else {'newline': ''}
             with open(csv_filename, mode, **kwargs) as csv_file:
                 writer = csv.writer(csv_file)
-
                 # Write header (time + all output variable headers)
                 header = ["Time"] + list(history_data.keys())
                 writer.writerow(header)
-
                 # Write data for each time
                 for time in sorted_time:
                     row = [time]
@@ -81,9 +70,7 @@ def export_history_outputs_by_region(odb, output_folder):
                         matches = [value for t, value in history_data[output_key] if t == time]
                         row.append(matches[0] if matches else None)
                     writer.writerow(row)
-
             print("Exported region {} to {}".format(history_region_key, csv_filename))
-
     except Exception as e:
         print("Error exporting history outputs: {}".format(e))
 
@@ -94,16 +81,13 @@ def export_field_outputs_of_deleted_element(odb, field_filename, output_folder):
         # Get the first step from the ODB
         step_name = list(odb.steps.keys())[0]
         step = odb.steps[step_name]
-
         # Find the first deleted element in the last frame
         last_frame = step.frames[-1]
         status_field = last_frame.fieldOutputs['STATUS']
         failure_detected = False
-
         for value in status_field.values:
             if value.data == 0:  # STATUS = 0 indicates the element is deleted
                 failure_detected = True
-
         first_deleted = None
         for frame in step.frames:
             field = frame.fieldOutputs['STATUS']
@@ -113,31 +97,24 @@ def export_field_outputs_of_deleted_element(odb, field_filename, output_folder):
                     break
             if first_deleted:
                 break
-
         if not first_deleted:
             print("No elements were deleted in the simulation.")
             return
-
         print("First deleted element: {}".format(first_deleted))
-
         # Ensure the output folder exists
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
-
         # Prepare for data extraction
         field_variables = [
             'CENER', 'DMENER', 'LE', 'LODE', 'PE', 'PEEQ',
             'PENER', 'S', 'SENER', 'TEMP', 'TRIAX', 'VENER'
         ]
-
         # Collect data for the first deleted element
         field_data = []
         headers = ['Frame', 'Time'] + field_variables
-
         for frame_index, frame in enumerate(step.frames):
             time = frame.frameValue  # Simulation time
             row = [frame_index, time]
-
             for variable in field_variables:
                 try:
                     field_output = frame.fieldOutputs[variable]
@@ -149,9 +126,7 @@ def export_field_outputs_of_deleted_element(odb, field_filename, output_folder):
                     row.append("N/A")  # Variable not found
                 except StopIteration:
                     row.append("N/A")  # Element data not found
-
             field_data.append(row)
-
         # Write data to a CSV file
         csv_filename = os.path.join(output_folder, "{}_deleted_element.csv".format(field_filename))
         mode = 'wb' if is_python2() else 'w'
@@ -160,29 +135,22 @@ def export_field_outputs_of_deleted_element(odb, field_filename, output_folder):
             writer = csv.writer(csv_file)
             writer.writerow(headers)  # Write the header row
             writer.writerows(field_data)  # Write the data rows
-
         print("Field data for the deleted element exported to {}".format(csv_filename))
-
     except Exception as e:
         print("Error exporting field outputs: {}".format(e))
 
-    # Function to generate a deformed field image
 
-
+# Function to generate a deformed field image
 def capture_deformed_field(odb, image_filename, output_folder):
     print("Capturing deformed field image and saving to {}...".format(image_filename))
-
     try:
         # Ensure the output folder exists
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
-
         # Full image file path
         image_file_path = os.path.join(output_folder, image_filename)
-
         # Create this through a macro
         session.viewports['Viewport: 1'].setValues(displayedObject=odb)
-
         session.viewports['Viewport: 1'].odbDisplay.display.setValues(plotState=(
             CONTOURS_ON_DEF,))
         session.viewports['Viewport: 1'].view.setValues(session.views['Iso'])
@@ -205,19 +173,26 @@ def capture_deformed_field(odb, image_filename, output_folder):
                                                         viewOffsetY=-8.02732)
         session.printToFile(fileName=(image_file_path + "_2.png"), format=PNG, canvasObjects=(
             session.viewports['Viewport: 1'],))
-
     except Exception as e:
-        print("Error capture picture with deformed field: {}".format(e))
+        print("Error capturing picture with deformed field: {}".format(e))
 
 
 # Main script
 def main():
+    parser = argparse.ArgumentParser(description="Process ODB files.")
+    parser.add_argument('--filter', type=str, default=None, help="Filter ODB files by a substring in their names.")
+    args = parser.parse_args()
+
     # Get all ODB files in the current directory
     odb_files = [f for f in os.listdir('.') if f.endswith('.odb')]
 
+    # Filter ODB files if a filter string is provided
+    if args.filter:
+        odb_files = [f for f in odb_files if args.filter in f]
+
     # Ensure there is at least one ODB file
     if not odb_files:
-        print("No .odb files found in the current directory.")
+        print("No .odb files found matching the specified criteria.")
         return
 
     for odb_file in odb_files:
@@ -226,30 +201,16 @@ def main():
         odb = openOdb(path=odb_file)
 
         # Export history outputs by region to a folder
-        print("Joining paths")
-        begin = time.time()
         output_folder = os.path.join(".", os.path.splitext(odb_file)[0] + "_history_outputs")
-        print("Joining paths. Done in {}".format(begin - time.time()))
-
-        print("Exporting history outputs")
-        begin = time.time()
         export_history_outputs_by_region(odb, output_folder)
-        print("Exporting history outputs. Done in {}".format(begin - time.time()))
 
+        # Export field outputs of deleted element
         field_name = "{}".format(os.path.splitext(odb_file)[0])
-
-        print("Exporting field outputs")
-        begin = time.time()
         export_field_outputs_of_deleted_element(odb, field_name, output_folder)
-        print("Exporting field outputs. Done in {}".format(begin - time.time()))
 
         # Capture the deformed field image
         image_filename = "{}_deformed".format(os.path.splitext(odb_file)[0])
-
-        print("Capturing deformed field")
-        begin = time.time()
         capture_deformed_field(odb, image_filename, output_folder)
-        print("Capturing deformed field. Done in {}".format(begin - time.time()))
 
         # Close the ODB file
         odb.close()
