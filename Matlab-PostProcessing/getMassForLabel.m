@@ -1,0 +1,53 @@
+function mass = getMassForLabel(filename, inputLabel)
+    % Reads a file and retrieves the mass for a given label.
+    % 
+    % Parameters:
+    %   filename (string): Path to the .txt file containing the data.
+    %   inputLabel (char): The label to search for in the file.
+    % 
+    % Returns:
+    %   mass (double): The mass corresponding to the input label. Returns NaN if the label is not found.
+
+    % Convert inputLabel to a string for compatibility
+    inputLabel = string(inputLabel);
+
+    % Read the file as text
+    fileData = fileread(filename);
+    
+    % Split the file into lines
+    lines = strsplit(fileData, '\n');
+    
+    % Initialize the output mass as NaN (default if not found)
+    mass = NaN;
+    
+    % Loop through each line to find the label
+    for i = 1:length(lines)
+        if isempty(lines{i})
+            continue; % Skip empty lines
+        end
+        
+        % Split the line into label and mass parts
+        parts = strsplit(lines{i}, ',');
+        if length(parts) < 2
+            continue; % Skip malformed lines
+        end
+
+        insrt = extractBetween(inputLabel,'-EPT','-MATV');
+        
+        % Extract the label from the line
+        label = string(extractBetween(parts{1}, '4cpu-', '-MS'));
+        label = strrep(label, '-2-IDV-3', insrt);
+        
+        % Compare the label with the input label
+        if label == inputLabel
+            % Convert the mass to a number and return
+            mass = str2double(parts{2});
+            return;
+        end
+    end
+    
+    % If no match was found, display a warning
+    if isnan(mass)
+        warning('Label "%s" not found in the file.', inputLabel);
+    end
+end

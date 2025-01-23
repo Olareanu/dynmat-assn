@@ -1,7 +1,17 @@
 # dynmat-assn
 
-A repo for scripts made for the Dynamic behaviour of Materials final Project. Abaqus CAE 2024 required for running the
-geometry generation, Abaqus 2023 or newer for running the input files.
+A repo for scripts made for the "Dynamic behaviour of Materials" final Project. The name of our assignment is
+"Assessing Material Performance in Fuselage Impact". Abaqus CAE 2024 required for running the geometry generation,
+Abaqus 2023 or newer for running the input files.
+
+### Contributors:
+
+- Alexandru Olareanu
+- Pawel Golla
+- Lennard Leypold
+- Frederic Huwyle
+
+### File description
 
 | File Name                    | Description                                                                               |
 |------------------------------|-------------------------------------------------------------------------------------------|
@@ -12,13 +22,10 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 | `euler_job_submission.py`    | Script that loads all the jobs into the queue on euler.                                   |
 | `euler_job_status.py`        | Script that reads the `.sta` files of the jobs.                                           |
 | `euler_odb_extract.py`       | Script that extracts pictures and CSV files from ODB Databases.                           |
-| `local_plots_from_csv.py`    | Script that generates plots from CSV files on euler.                                      |
 | `euler_sendToBox.py`         | Script that sends files straight to the storage box through ssh.                          |
 | `euler_pullFromBox.py`       | Script that sends files straight from the storage box to euler through ssh.               |
-| `dataExtractionConv.m`       | Reads file names and CSVs and stores them in a struct, then saves the struct.             |
-| `rigidIndenterStudy.m`       | Opens the struct and compares results for different IDVs.                                 |
-| `EPTStudy.m`                 | Opens the struct and compares results for different EPTs.                                 |
 | `euler_batch_odb_extract.py` | Automates the extraction job submission process                                           |
+| `local_plots_from_csv.py`    | Script that generates plots from CSV files on euler.                                      |
 
 ### Usage of scripts:
 
@@ -36,8 +43,9 @@ geometry generation, Abaqus 2023 or newer for running the input files.
 - Optionally run `euler_sendToBox.py` to send files matching some naming scheme straight to the storage box
 - Optionally run `local_plots_from_csv.py` to create some quick graphs out of the newly generated `.csv` files
 
-Useful euler commands and things to know:
+An entire assortment of Matlab scripts is the used for post-processing
 
+Useful euler commands and things to know:
 ```
 navigate to /cluster/scratch/yourKurzel
 module load abaqus/2023
