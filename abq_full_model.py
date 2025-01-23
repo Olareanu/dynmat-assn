@@ -26,15 +26,24 @@ import os
 # script to set these in a safe manner.
 
 
-job_name = 'Job-full-model-1'
+job_name = 'Job-runp'
 nr_cpus = 4
-sim_step_time = 0.0035
+sim_step_time = 0.01
 
-bending_radius = 10  # Bending radius
-bending_angle = 30  # Bending angle
-sheet_thickness = 1.4  # Thickness
+bending_radius = 5  # Bending radius 5, 7.5, 10
+bending_angle = 45  # Bending angle 15, 30, 45
+sheet_thickness = 1.4  # Thickness Steel 1.4, Alu 4
 
-sheet_version = 1
+# bending_radius = 10  # Bending radius 5, 7.5, 10
+# bending_angle = 15  # Bending angle 15, 30, 45
+# sheet_thickness = 4  # Thickness Steel 1.4, Alu 4
+
+# bending_radius = 7.5  # Bending radius 5, 7.5, 10
+# bending_angle = 30  # Bending angle 15, 30, 45
+# sheet_thickness = 1.4  # Thickness Steel 1.4, Alu 4
+
+sheet_version = 61
+# [1, 3, 39, 11, 12, 21, 22, 23, 31, 32, 33, 41, 42, 51, 52, 61, 63, 71, 73]
 # 1 simple sheet, uniform mesh, brick element
 # 2 simple sheet, variable element size. brick element
 # 3 elliptical hole
@@ -49,15 +58,20 @@ sheet_material = 1
 elements_per_thickness = 1
 smallest_element_length = sheet_thickness / elements_per_thickness
 
-indenter_version = 2
+mass_scaling = 1
 
-# 1 cylindrical indenter
-# 2 cylindrical indenter as rigid body
+indenter_version = 4
+
+indenter_weight_factor = 1
+
+indenter_velocity_factor = 1
 
 
 # Change working directory where inp files are generated
 os.chdir(r"C:\Temp\DirectoryName")
 
+indenter_weight = indenter_weight_factor * 0.000625
+indenter_velocity = indenter_velocity_factor * 10000
 
 def material_import():
     import material
@@ -548,6 +562,235 @@ def Indenter():
         refPoints = (r[19],)
         p.Set(referencePoints=refPoints, name='Set-Indenter-RP')
 
+    if indenter_version == 3:
+        # Geometry
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=200.0)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=STANDALONE)
+        s1.ConstructionLine(point1=(0.0, 0.0), angle=90.0)
+        s1.VerticalConstraint(entity=g[2], addUndoState=False)
+        s1.ConstructionLine(point1=(0.0, 0.0), angle=0.0)
+        s1.HorizontalConstraint(entity=g[3], addUndoState=False)
+        s1.FixedConstraint(entity=g[3])
+        s1.FixedConstraint(entity=g[2])
+        s1.CircleByCenterPerimeter(center=(0.0, 12.5), point1=(0.0, 0.0))
+        s1.CoincidentConstraint(entity1=v[1], entity2=g[2], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[0], entity2=g[2], addUndoState=False)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=178.455,
+                                                        farPlane=198.669, width=138.517, height=61.852, cameraPosition=(
+                2.83219, 1.37736, 188.562), cameraTarget=(2.83219, 1.37736, 0))
+        s1.autoTrimCurve(curve1=g[4], point1=(-17.8298721313477, 9.5838041305542))
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[2])
+        s1.CoincidentConstraint(entity1=v[3], entity2=g[2])
+        s1.CoincidentConstraint(entity1=v[2], entity2=g[2])
+        s1.CoincidentConstraint(entity1=v[2], entity2=g[3])
+        s1.RadialDimension(curve=g[5], textPoint=(3.64498043060303, 9.75477123260498),
+                           radius=10.0)
+        p = mdb.models['Model-1'].Part(name='Indenter', dimensionality=THREE_D,
+                                       type=DISCRETE_RIGID_SURFACE)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.BaseShellExtrude(sketch=s1, depth=100.0)
+        s1.unsetPrimaryObject()
+        p = mdb.models['Model-1'].parts['Indenter']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p)
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=215.925,
+                                                        farPlane=275.491, width=138.386, height=61.7935,
+                                                        cameraPosition=(
+                                                            -52.9213, 234.348, -45.5241),
+                                                        cameraUpVector=(0.207844, -0.471167,
+                                                                        -0.857224),
+                                                        cameraTarget=(-0.21615, 19.9563, -2.38072))
+        p = mdb.models['Model-1'].parts['Indenter']
+        v1, e, d1, n = p.vertices, p.edges, p.datums, p.nodes
+        p.ReferencePoint(point=p.InterestingPoint(edge=e[2], rule=CENTER))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=202.648,
+                                                        farPlane=288.768, width=350.962, height=156.715,
+                                                        viewOffsetX=39.5415,
+                                                        viewOffsetY=-31.7438)
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(faces=faces, name='Set-Indenter')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-Probe-Top')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-RP')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-Xmin')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=101.764,
+                                                        farPlane=224.115, width=150.645, height=67.2673,
+                                                        cameraPosition=(
+                                                            -43.5509, 58.2825, 206.44),
+                                                        cameraUpVector=(0.129749, 0.909869,
+                                                                        -0.394181),
+                                                        cameraTarget=(-2.11998, 17.9629, -325.404))
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.seedPart(size=10.0, deviationFactor=0.1, minSizeFactor=0.1)
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges1 = e.getSequenceFromMask(mask=('[#4 ]',), )
+        pickedEdges2 = e.getSequenceFromMask(mask=('[#1 ]',), )
+        p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
+                         end2Edges=pickedEdges2, minSize=0.5, maxSize=2.0, constraint=FINER)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=114.785,
+                                                        farPlane=227.995, width=97.6897, height=43.7294,
+                                                        cameraPosition=(
+                                                            20.1727, 50.0658, 223.669),
+                                                        cameraUpVector=(-0.107134, 0.92238,
+                                                                        -0.371235),
+                                                        cameraTarget=(-150.661, 19.884, -282.4))
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges1 = e.getSequenceFromMask(mask=('[#4 ]',), )
+        pickedEdges2 = e.getSequenceFromMask(mask=('[#1 ]',), )
+        p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1,
+                         end2Edges=pickedEdges2, minSize=0.5, maxSize=3.0, constraint=FINER)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.generateMesh()
+
+    if indenter_version == 4:
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=200.0)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=STANDALONE)
+        s.ConstructionLine(point1=(0.0, -100.0), point2=(0.0, 100.0))
+        s.FixedConstraint(entity=g[2])
+        s.ConstructionLine(point1=(0.0, 0.0), angle=0.0)
+        s.HorizontalConstraint(entity=g[3], addUndoState=False)
+        s.FixedConstraint(entity=g[3])
+        s.CircleByCenterPerimeter(center=(2.5, 13.75), point1=(0.0, 0.0))
+        s.CoincidentConstraint(entity1=v[1], entity2=g[2], addUndoState=False)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=177.809,
+                                                        farPlane=199.314, width=147.359, height=65.8,
+                                                        cameraPosition=(15.3477,
+                                                                        10.4308, 188.562),
+                                                        cameraTarget=(15.3477, 10.4308, 0))
+        s.Line(point1=(14.2924764150707, 21.25), point2=(14.2924764150707, 40.0))
+        s.VerticalConstraint(entity=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[2], entity2=g[4], addUndoState=False)
+        s.autoTrimCurve(curve1=g[4], point1=(-5.72304916381836, 21.5255508422852))
+        s.autoTrimCurve(curve1=g[6], point1=(8.38478851318359, 22.0711898803711))
+        s.CoincidentConstraint(entity1=v[8], entity2=g[2])
+        s.CoincidentConstraint(entity1=v[7], entity2=g[2])
+        s.TangentConstraint(entity1=g[7], entity2=g[5])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=184.51,
+                                                        farPlane=192.613, width=62.8414, height=28.0606,
+                                                        cameraPosition=(
+                                                            9.08466, 6.75572, 188.562),
+                                                        cameraTarget=(9.08466, 6.75572, 0))
+        s.CoincidentConstraint(entity1=v[7], entity2=g[3])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=180.527,
+                                                        farPlane=196.597, width=124.627, height=55.6497,
+                                                        cameraPosition=(
+                                                            15.2771, 19.5416, 188.562),
+                                                        cameraTarget=(15.2771, 19.5416, 0))
+        s.RadialDimension(curve=g[7], textPoint=(5.69337463378906, 10.3890628814697),
+                          radius=10.0)
+        s.DistanceDimension(entity1=v[3], entity2=g[3], textPoint=(27.5550880432129,
+                                                                   15.1575927734375), value=100.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=169.454,
+                                                        farPlane=207.67, width=296.362, height=132.335, cameraPosition=(
+                16.3359, 45.8232, 188.562), cameraTarget=(16.3359, 45.8232, 0))
+        s.sketchOptions.setValues(constructionGeometry=ON)
+        s.assignCenterline(line=g[2])
+        p = mdb.models['Model-1'].Part(name='Indenter', dimensionality=THREE_D,
+                                       type=DISCRETE_RIGID_SURFACE)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.BaseShellRevolve(sketch=s, angle=90.0, flipRevolveDirection=OFF)
+        s.unsetPrimaryObject()
+        p = mdb.models['Model-1'].parts['Indenter']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p)
+        del mdb.models['Model-1'].sketches['__profile__']
+
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=193.072,
+                                                        farPlane=299.241, width=256.078, height=114.347,
+                                                        cameraPosition=(
+                                                            -153.915, 168.821, 150.684),
+                                                        cameraUpVector=(0.530006, 0.65852,
+                                                                        -0.534277),
+                                                        cameraTarget=(1.49212, 50.5702, 8.32826))
+        p = mdb.models['Model-1'].parts['Indenter']
+        v2, e1, d2, n1 = p.vertices, p.edges, p.datums, p.nodes
+        p.ReferencePoint(point=p.InterestingPoint(edge=e1[0], rule=CENTER))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=185.072,
+                                                        farPlane=307.241, width=396.507, height=177.052,
+                                                        cameraPosition=(
+                                                            -131.815, 163.022, 179.628),
+                                                        cameraTarget=(23.5921, 44.7711, 37.2714))
+        p = mdb.models['Model-1'].parts['Indenter']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#3 ]',), )
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(faces=faces, referencePoints=refPoints, name='Set-Indenter')
+        p = mdb.models['Model-1'].parts['Indenter']
+        v = p.vertices
+        verts = v.getSequenceFromMask(mask=('[#10 ]',), )
+        p.Set(vertices=verts, name='Set-Indenter-Probe-Top')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-RP')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-Xmin')
+        p = mdb.models['Model-1'].parts['Indenter']
+        r = p.referencePoints
+        refPoints = (r[2],)
+        p.Set(referencePoints=refPoints, name='Set-Indenter-Zmin')
+
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=194.017,
+                                                        farPlane=298.296, width=227.196, height=101.701,
+                                                        cameraPosition=(
+                                                            -147.673, 151.896, 171.558),
+                                                        cameraTarget=(7.73475, 33.6452, 29.2022))
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges1 = e.getSequenceFromMask(mask=('[#5 ]',), )
+        p.seedEdgeByBias(biasMethod=SINGLE, end1Edges=pickedEdges1, minSize=0.5,
+                         maxSize=2.0, constraint=FINER)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=194.236,
+                                                        farPlane=278.314, width=137.421, height=61.5146,
+                                                        cameraPosition=(
+                                                            -209.915, 135.902, 62.8101),
+                                                        cameraUpVector=(0.717382, 0.685595,
+                                                                        -0.123837),
+                                                        cameraTarget=(1.95646, 25.2657, 27.1711))
+        p = mdb.models['Model-1'].parts['Indenter']
+        e = p.edges
+        pickedEdges = e.getSequenceFromMask(mask=('[#2 ]',), )
+        p.seedEdgeBySize(edges=pickedEdges, size=2.0, deviationFactor=0.1,
+                         constraint=FINER)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=201.806,
+                                                        farPlane=270.701, width=89.3157, height=39.9809,
+                                                        cameraPosition=(
+                                                            167.748, 102.852, 171.621),
+                                                        cameraUpVector=(-0.448182, 0.758223,
+                                                                        -0.473552),
+                                                        cameraTarget=(10.6032, 15.3908, 10.2016))
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.seedPart(size=10.0, deviationFactor=0.1, minSizeFactor=0.1)
+        p = mdb.models['Model-1'].parts['Indenter']
+        p.generateMesh()
+
 
 def bottomSupport():
     # Geometry Creation
@@ -853,6 +1096,15 @@ def sheet():
     verts = v.getSequenceFromMask(mask=('[#288 ]',), )
     p.Set(vertices=verts, name='Set-Sheet-Probes')
 
+    # Set Clamping
+    if sheet_version != 52:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Clamp')
+
     if sheet_version == 1:
         # Still Partitioning as it gives a better mesh
         p = mdb.models['Model-1'].parts['Sheet']
@@ -899,7 +1151,14 @@ def sheet():
         f = p.faces
         faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
         p.Set(faces=faces, name='Set-Sheet-Xmin')
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#80092 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Clamp')
 
+    #different mesh (not run)
     if sheet_version == 2:
         # Partitioning
         p = mdb.models['Model-1'].parts['Sheet']
@@ -1018,7 +1277,7 @@ def sheet():
         faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
-    # Elliptical Hole
+    # Hole R15
     if sheet_version == 3:
         Major_R = 15  # Major radius
         Minor_R = 15  # Minor radius
@@ -1132,6 +1391,121 @@ def sheet():
         faces = f.getSequenceFromMask(mask=('[#4000 ]',), )
         p.Set(faces=faces, name='Set-Sheet-Xmin')
 
+    # Hole R20
+    if sheet_version == 39:
+        Major_R = 20  # Major radius
+        Minor_R = 20  # Minor radius
+        # Vertical_d = 10 #Vertical distance of the point of the hole
+        Vertical_d = Major_R  # This makes Major_R always vertical and Minor_R horizontal
+
+        Horizontal_d = 33  # Horizontal distance of the hole
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-21.050197,
+                                                                                          30.24083, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=231.15, gridSpacing=5.77, transform=t)
+        g, v, d, c1 = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+
+        s1.ConstructionLine(point1=(-50.0, 21.5478615609292), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[3], entity2=g[6], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.ConstructionLine(point1=(-50.0, -21.5478611571636), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[2], entity2=g[7], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.ConstructionLine(point1=(-50.0, 21.5478615609292), angle=90.0)
+        s1.CoincidentConstraint(entity1=v[3], entity2=g[8], addUndoState=False)
+        s1.VerticalConstraint(entity=g[8], addUndoState=False)
+        s1.EllipseByCenterPerimeter(center=(-27.4075, -1.4425), axisPoint1=(-18.7525,
+                                                                            4.3275), axisPoint2=(-23.08, -2.885))
+        s1.ConstructionLine(point1=(-27.4075, -1.4425), angle=90.0)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[11], addUndoState=False)
+        s1.VerticalConstraint(entity=g[11], addUndoState=False)
+        s1.ConstructionLine(point1=(-27.4075, -1.4425), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[12], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[12], addUndoState=False)
+        s1.DistanceDimension(entity1=g[11], entity2=g[5], textPoint=(-40.1945953369141,
+                                                                     15.4495947625103), value=22.123)
+        s1.SymmetryConstraint(entity1=g[3], entity2=g[4], symmetryAxis=g[12])
+        s1.SymmetryConstraint(entity1=g[3], entity2=g[4], symmetryAxis=g[12])
+        s1.RadialDimension(curve=g[9], textPoint=(-22.7735252380371, 10.9733702059625),
+                           majorRadius=14.123)
+        s1.RadialDimension(curve=g[9], textPoint=(-33.2774047851562,
+                                                  -10.6404219397356), minorRadius=5.123)
+        s1.DistanceDimension(entity1=v[4], entity2=g[12], textPoint=(-5.35244369506836,
+                                                                     3.42771750557858), value=7.123)
+        s = mdb.models['Model-1'].sketches['__profile__']
+        s.Parameter(name='Horizontal_Distance', path='dimensions[0]',
+                    expression="{:.9f}".format(Horizontal_d))
+        s = mdb.models['Model-1'].sketches['__profile__']
+        s.Parameter(name='Major_Radius', path='dimensions[1]', expression="{:.9f}".format(Major_R),
+                    previousParameter='Horizontal_Distance')
+        s = mdb.models['Model-1'].sketches['__profile__']
+        s.Parameter(name='Minor_Radius', path='dimensions[2]', expression="{:.9f}".format(Minor_R),
+                    previousParameter='Major_Radius')
+        s = mdb.models['Model-1'].sketches['__profile__']
+        s.Parameter(name='Vertical_Point_from_middle', path='dimensions[3]',
+                    expression="{:.9f}".format(Vertical_d), previousParameter='Minor_Radius')
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+
+        # Partitioning for meshing
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[9], point2=v1[15],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e[10], rule=MIDDLE))
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[11], point2=v2[6],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e1[20], rule=MIDDLE))
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[17],
+                                          cells=pickedCells, point3=p.InterestingPoint(edge=e[25], rule=MIDDLE))
+
+        # Seeding uniformly
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+
+        # Meshing
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+        # Generate set with entire sheet
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+
+        # Sets for Symetry BCs
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#200124 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#4000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+
+    # different Mesh (not run)
     if sheet_version == 4:
         # Still Partitioning as it gives a better mesh
         p = mdb.models['Model-1'].parts['Sheet']
@@ -1203,6 +1577,2735 @@ def sheet():
         f = p.faces
         faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
         p.Set(faces=faces, name='Set-Sheet-Xmin')
+
+    # Hole beneath indenter R15
+    if sheet_version == 11:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=237.841,
+                                                        farPlane=421.752, width=223.186, height=99.6591,
+                                                        cameraPosition=(
+                                                            -250.074, 189.966, 258.365),
+                                                        cameraUpVector=(0.523786, 0.655113,
+                                                                        -0.544495),
+                                                        cameraTarget=(-46.8929, 26.4557, 54.4022))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.CircleByCenterPerimeter(center=(-43.7175, 1.5075), point1=(-50.0, -13.5675))
+        s.CoincidentConstraint(entity1=v[5], entity2=g[5], addUndoState=False)
+        s.ConstructionLine(point1=(-43.7175, 1.5075), angle=0.0)
+        s.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[7])
+        s.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s.RadialDimension(curve=g[6], textPoint=(-58.3784065246582, 5.11870630863831),
+                          radius=15.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=235.896,
+                                                        farPlane=423.698, width=266.512, height=119.006,
+                                                        viewOffsetX=3.58176,
+                                                        viewOffsetY=4.57567)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=261.09,
+                                                        farPlane=431.396, width=203.495, height=90.8667,
+                                                        cameraPosition=(
+                                                            240.76, 46.0464, 237.596),
+                                                        cameraUpVector=(-0.173902, 0.905365,
+                                                                        -0.387393),
+                                                        cameraTarget=(-33.1468, 35.8675, 51.8795),
+                                                        viewOffsetX=-1.14936, viewOffsetY=9.40881)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#40 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=278.511,
+                                                        farPlane=430.441, width=217.961, height=97.3261,
+                                                        cameraPosition=(
+                                                            30.2484, 58.341, -294.263),
+                                                        cameraUpVector=(-0.0943516, 0.922847,
+                                                                        0.373437),
+                                                        cameraTarget=(-46.663, 39.9671, 27.2428),
+                                                        viewOffsetX=13.2887, viewOffsetY=-5.75466)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2004 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=281.513,
+                                                        farPlane=427.438, width=151.986, height=68.0341,
+                                                        viewOffsetX=12.5647,
+                                                        viewOffsetY=-15.0042)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[4], point2=v1[8], point3=v1[21],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=290.685,
+                                                        farPlane=422.552, width=156.937, height=70.2506,
+                                                        cameraPosition=(
+                                                            -27.3303, 62.2111, -304.527),
+                                                        cameraUpVector=(-0.0220959, 0.918473,
+                                                                        0.394873),
+                                                        cameraTarget=(-49.9818, 40.1339, 25.0464),
+                                                        viewOffsetX=12.974, viewOffsetY=-15.493)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[17], point2=v2[14], point3=v2[4],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=283.081,
+                                                        farPlane=439.496, width=184.005, height=82.3673,
+                                                        cameraPosition=(
+                                                            -139.319, 107.534, -291.689),
+                                                        cameraUpVector=(0.109152, 0.865711,
+                                                                        0.488505),
+                                                        cameraTarget=(-57.3348, 46.9309, 23.3104),
+                                                        viewOffsetX=16.5048, viewOffsetY=-10.1536)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[15], point2=v1[23], point3=v1[14],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=276.561,
+                                                        farPlane=445.974, width=294.908, height=132.011,
+                                                        viewOffsetX=45.8672,
+                                                        viewOffsetY=-21.8117)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Hole beneath indenter R20
+    if sheet_version == 12:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=237.841,
+                                                        farPlane=421.752, width=223.186, height=99.6591,
+                                                        cameraPosition=(
+                                                            -250.074, 189.966, 258.365),
+                                                        cameraUpVector=(0.523786, 0.655113,
+                                                                        -0.544495),
+                                                        cameraTarget=(-46.8929, 26.4557, 54.4022))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.CircleByCenterPerimeter(center=(-43.7175, 1.5075), point1=(-50.0, -13.5675))
+        s.CoincidentConstraint(entity1=v[5], entity2=g[5], addUndoState=False)
+        s.ConstructionLine(point1=(-43.7175, 1.5075), angle=0.0)
+        s.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[7])
+        s.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s.RadialDimension(curve=g[6], textPoint=(-58.3784065246582, 5.11870630863831),
+                          radius=20.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=235.896,
+                                                        farPlane=423.698, width=266.512, height=119.006,
+                                                        viewOffsetX=3.58176,
+                                                        viewOffsetY=4.57567)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=261.09,
+                                                        farPlane=431.396, width=203.495, height=90.8667,
+                                                        cameraPosition=(
+                                                            240.76, 46.0464, 237.596),
+                                                        cameraUpVector=(-0.173902, 0.905365,
+                                                                        -0.387393),
+                                                        cameraTarget=(-33.1468, 35.8675, 51.8795),
+                                                        viewOffsetX=-1.14936, viewOffsetY=9.40881)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#40 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=278.511,
+                                                        farPlane=430.441, width=217.961, height=97.3261,
+                                                        cameraPosition=(
+                                                            30.2484, 58.341, -294.263),
+                                                        cameraUpVector=(-0.0943516, 0.922847,
+                                                                        0.373437),
+                                                        cameraTarget=(-46.663, 39.9671, 27.2428),
+                                                        viewOffsetX=13.2887, viewOffsetY=-5.75466)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2004 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=281.513,
+                                                        farPlane=427.438, width=151.986, height=68.0341,
+                                                        viewOffsetX=12.5647,
+                                                        viewOffsetY=-15.0042)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[4], point2=v1[8], point3=v1[21],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=290.685,
+                                                        farPlane=422.552, width=156.937, height=70.2506,
+                                                        cameraPosition=(
+                                                            -27.3303, 62.2111, -304.527),
+                                                        cameraUpVector=(-0.0220959, 0.918473,
+                                                                        0.394873),
+                                                        cameraTarget=(-49.9818, 40.1339, 25.0464),
+                                                        viewOffsetX=12.974, viewOffsetY=-15.493)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[17], point2=v2[14], point3=v2[4],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=283.081,
+                                                        farPlane=439.496, width=184.005, height=82.3673,
+                                                        cameraPosition=(
+                                                            -139.319, 107.534, -291.689),
+                                                        cameraUpVector=(0.109152, 0.865711,
+                                                                        0.488505),
+                                                        cameraTarget=(-57.3348, 46.9309, 23.3104),
+                                                        viewOffsetX=16.5048, viewOffsetY=-10.1536)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[15], point2=v1[23], point3=v1[14],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=276.561,
+                                                        farPlane=445.974, width=294.908, height=132.011,
+                                                        viewOffsetX=45.8672,
+                                                        viewOffsetY=-21.8117)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # 1 1/2 holes R15
+    if sheet_version == 21:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=240.089,
+                                                        farPlane=415.796, width=225.295, height=100.601,
+                                                        cameraPosition=(
+                                                            -173.254, 232.405, 277.415),
+                                                        cameraUpVector=(0.490676, 0.524005,
+                                                                        -0.696173),
+                                                        cameraTarget=(-45.6444, 25.2275, 52.8875))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.CircleByCenterPerimeter(center=(-46.7325, 1.5075), point1=(-50.0, -15.075))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[5], addUndoState=False)
+        s1.ConstructionLine(point1=(-46.7325, 1.5075), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(7.53750000000291, 1.5075), point1=(27.135,
+                                                                              1.5075))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[7], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[7])
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s1.EqualRadiusConstraint(entity1=g[6], entity2=g[8])
+        s1.RadialDimension(curve=g[6], textPoint=(-44.4964904785156, 5.36638268652219),
+                           radius=15.0)
+        s1.DistanceDimension(entity1=v[6], entity2=g[5], textPoint=(-21.0294456481934,
+                                                                    -7.34778249669104), value=50.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=135.753,
+                                                        farPlane=280.017, width=209.088, height=93.3642,
+                                                        cameraPosition=(
+                                                            -220.068, 151.904, 50.7202),
+                                                        cameraTarget=(-20.7638, 36.836, 50.7202))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=230.731,
+                                                        farPlane=425.154, width=382.741, height=170.905,
+                                                        viewOffsetX=5.94659,
+                                                        viewOffsetY=-5.24583)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=259.32,
+                                                        farPlane=411.171, width=170.04, height=75.9281, cameraPosition=(
+                275.797, 70.4915, -18.7716), cameraUpVector=(-0.505822, 0.839568,
+                                                             -0.198168), cameraTarget=(-43.8608, 26.9249, 55.6604),
+                                                        viewOffsetX=-10.6976, viewOffsetY=9.15343)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#100 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=229.112,
+                                                        farPlane=390.437, width=170.023, height=75.9204,
+                                                        cameraPosition=(
+                                                            86.6967, 16.5644, -227.625),
+                                                        cameraUpVector=(-0.0297387, 0.951699,
+                                                                        0.305593),
+                                                        cameraTarget=(-58.6545, 32.6048, 69.4183),
+                                                        viewOffsetX=-3.9033, viewOffsetY=5.15811)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#4004 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[15], point2=v2[14], point3=v2[16],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=222.757,
+                                                        farPlane=371.302, width=137.301, height=61.3092,
+                                                        cameraPosition=(
+                                                            -112.461, 89.6977, -234.335),
+                                                        cameraUpVector=(0.186989, 0.856272,
+                                                                        0.481497),
+                                                        cameraTarget=(-43.8521, 25.1234, 83.0633),
+                                                        viewOffsetX=2.61962, viewOffsetY=-9.28875)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[17], point2=v1[18], point3=v1[12],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[9], point2=v2[6], point3=v2[21],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=220.031,
+                                                        farPlane=374.028, width=196.59, height=87.7833,
+                                                        viewOffsetX=20.626,
+                                                        viewOffsetY=-4.97001)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=212.845,
+                                                        farPlane=381.214, width=301.261, height=134.855,
+                                                        viewOffsetX=42.4266,
+                                                        viewOffsetY=-17.9585)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # 1 1/2 holes R20
+    if sheet_version == 22:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=240.089,
+                                                        farPlane=415.796, width=225.295, height=100.601,
+                                                        cameraPosition=(
+                                                            -173.254, 232.405, 277.415),
+                                                        cameraUpVector=(0.490676, 0.524005,
+                                                                        -0.696173),
+                                                        cameraTarget=(-45.6444, 25.2275, 52.8875))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.CircleByCenterPerimeter(center=(-46.7325, 1.5075), point1=(-50.0, -15.075))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[5], addUndoState=False)
+        s1.ConstructionLine(point1=(-46.7325, 1.5075), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(7.53750000000291, 1.5075), point1=(27.135,
+                                                                              1.5075))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[7], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[7])
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s1.EqualRadiusConstraint(entity1=g[6], entity2=g[8])
+        s1.RadialDimension(curve=g[6], textPoint=(-44.4964904785156, 5.36638268652219),
+                           radius=20.0)
+        s1.DistanceDimension(entity1=v[6], entity2=g[5], textPoint=(-21.0294456481934,
+                                                                    -7.34778249669104), value=50.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=135.753,
+                                                        farPlane=280.017, width=209.088, height=93.3642,
+                                                        cameraPosition=(
+                                                            -220.068, 151.904, 50.7202),
+                                                        cameraTarget=(-20.7638, 36.836, 50.7202))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=230.731,
+                                                        farPlane=425.154, width=382.741, height=170.905,
+                                                        viewOffsetX=5.94659,
+                                                        viewOffsetY=-5.24583)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=259.32,
+                                                        farPlane=411.171, width=170.04, height=75.9281,
+                                                        cameraPosition=(
+                                                            275.797, 70.4915, -18.7716),
+                                                        cameraUpVector=(-0.505822, 0.839568,
+                                                                        -0.198168),
+                                                        cameraTarget=(-43.8608, 26.9249, 55.6604),
+                                                        viewOffsetX=-10.6976, viewOffsetY=9.15343)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#100 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=229.112,
+                                                        farPlane=390.437, width=170.023, height=75.9204,
+                                                        cameraPosition=(
+                                                            86.6967, 16.5644, -227.625),
+                                                        cameraUpVector=(-0.0297387, 0.951699,
+                                                                        0.305593),
+                                                        cameraTarget=(-58.6545, 32.6048, 69.4183),
+                                                        viewOffsetX=-3.9033, viewOffsetY=5.15811)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#4004 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[15], point2=v2[14], point3=v2[16],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=222.757,
+                                                        farPlane=371.302, width=137.301, height=61.3092,
+                                                        cameraPosition=(
+                                                            -112.461, 89.6977, -234.335),
+                                                        cameraUpVector=(0.186989, 0.856272,
+                                                                        0.481497),
+                                                        cameraTarget=(-43.8521, 25.1234, 83.0633),
+                                                        viewOffsetX=2.61962, viewOffsetY=-9.28875)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[17], point2=v1[18], point3=v1[12],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[9], point2=v2[6], point3=v2[21],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=220.031,
+                                                        farPlane=374.028, width=196.59, height=87.7833,
+                                                        viewOffsetX=20.626,
+                                                        viewOffsetY=-4.97001)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=212.845,
+                                                        farPlane=381.214, width=301.261, height=134.855,
+                                                        viewOffsetX=42.4266,
+                                                        viewOffsetY=-17.9585)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # 1 1/2 holes R10
+    if sheet_version == 23:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=240.089,
+                                                        farPlane=415.796, width=225.295, height=100.601,
+                                                        cameraPosition=(
+                                                            -173.254, 232.405, 277.415),
+                                                        cameraUpVector=(0.490676, 0.524005,
+                                                                        -0.696173),
+                                                        cameraTarget=(-45.6444, 25.2275, 52.8875))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.CircleByCenterPerimeter(center=(-46.7325, 1.5075), point1=(-50.0, -15.075))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[5], addUndoState=False)
+        s1.ConstructionLine(point1=(-46.7325, 1.5075), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(7.53750000000291, 1.5075), point1=(27.135,
+                                                                              1.5075))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[7], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[7])
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s1.EqualRadiusConstraint(entity1=g[6], entity2=g[8])
+        s1.RadialDimension(curve=g[6], textPoint=(-44.4964904785156, 5.36638268652219),
+                           radius=10.0)
+        s1.DistanceDimension(entity1=v[6], entity2=g[5], textPoint=(-21.0294456481934,
+                                                                    -7.34778249669104), value=50.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=135.753,
+                                                        farPlane=280.017, width=209.088, height=93.3642,
+                                                        cameraPosition=(
+                                                            -220.068, 151.904, 50.7202),
+                                                        cameraTarget=(-20.7638, 36.836, 50.7202))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=230.731,
+                                                        farPlane=425.154, width=382.741, height=170.905,
+                                                        viewOffsetX=5.94659,
+                                                        viewOffsetY=-5.24583)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=259.32,
+                                                        farPlane=411.171, width=170.04, height=75.9281,
+                                                        cameraPosition=(
+                                                            275.797, 70.4915, -18.7716),
+                                                        cameraUpVector=(-0.505822, 0.839568,
+                                                                        -0.198168),
+                                                        cameraTarget=(-43.8608, 26.9249, 55.6604),
+                                                        viewOffsetX=-10.6976, viewOffsetY=9.15343)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#100 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=229.112,
+                                                        farPlane=390.437, width=170.023, height=75.9204,
+                                                        cameraPosition=(
+                                                            86.6967, 16.5644, -227.625),
+                                                        cameraUpVector=(-0.0297387, 0.951699,
+                                                                        0.305593),
+                                                        cameraTarget=(-58.6545, 32.6048, 69.4183),
+                                                        viewOffsetX=-3.9033, viewOffsetY=5.15811)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#4004 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[15], point2=v2[14], point3=v2[16],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=222.757,
+                                                        farPlane=371.302, width=137.301, height=61.3092,
+                                                        cameraPosition=(
+                                                            -112.461, 89.6977, -234.335),
+                                                        cameraUpVector=(0.186989, 0.856272,
+                                                                        0.481497),
+                                                        cameraTarget=(-43.8521, 25.1234, 83.0633),
+                                                        viewOffsetX=2.61962, viewOffsetY=-9.28875)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[17], point2=v1[18], point3=v1[12],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[9], point2=v2[6], point3=v2[21],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=220.031,
+                                                        farPlane=374.028, width=196.59, height=87.7833,
+                                                        viewOffsetX=20.626,
+                                                        viewOffsetY=-4.97001)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=212.845,
+                                                        farPlane=381.214, width=301.261, height=134.855,
+                                                        viewOffsetX=42.4266,
+                                                        viewOffsetY=-17.9585)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Two holes R15
+    if sheet_version == 31:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.598,
+                                                        farPlane=415.972, width=227.65, height=101.652, cameraPosition=(
+                -312.534, 39.5699, 248.635), cameraUpVector=(0.19484, 0.913189,
+                                                             -0.357944), cameraTarget=(-45.9591, 26.7442, 52.6943))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f1[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.843,
+                                                        farPlane=276.927, width=142.406, height=63.5884,
+                                                        cameraPosition=(
+                                                            -223.726, 145.568, 54.9545),
+                                                        cameraTarget=(-24.4221, 30.4997, 54.9545))
+        s1.ConstructionLine(point1=(-50.0, 1.5075), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s1.CircleByCenterPerimeter(center=(-22.6125000000015, 1.30666605313579e-07),
+                                   point1=(-39.195, 1.30666605313579e-07))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[6], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(22.6125000000015, 1.30666605313579e-07),
+                                   point1=(6.03, 1.30666605313579e-07))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[6], addUndoState=False)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.179,
+                                                        farPlane=277.59, width=171.453, height=76.5587, cameraPosition=(
+                -225.309, 142.826, 58.6824), cameraTarget=(-26.0051, 27.7578, 58.6824))
+        s1.ConstructionLine(point1=(0.0, 1.30666605313579e-07), angle=90.0)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[5], entity2=g[2], symmetryAxis=g[9])
+        s1.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[9])
+        s1.HorizontalDimension(vertex1=v[4], vertex2=v[6], textPoint=(
+            -2.80773162841797, 20.4288429413966), value=50.0)
+        s1.EqualRadiusConstraint(entity1=g[7], entity2=g[8])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.843,
+                                                        farPlane=276.927, width=142.406, height=63.5884,
+                                                        cameraPosition=(
+                                                            -224.227, 144.7, 57.9286),
+                                                        cameraTarget=(-24.9229, 29.6323, 57.9286))
+        s1.RadialDimension(curve=g[7], textPoint=(-18.6790428161621, 4.69056781530244),
+                           radius=15.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=133.21,
+                                                        farPlane=282.56, width=248.529, height=110.976, cameraPosition=(
+                -225.798, 141.978, 69.7942), cameraTarget=(-26.4947, 26.9098, 69.7942))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=250.776,
+                                                        farPlane=422.276, width=162.343, height=72.4909,
+                                                        cameraPosition=(
+                                                            221.604, 81.9631, 242.059),
+                                                        cameraUpVector=(-0.343302, 0.870507,
+                                                                        -0.352653),
+                                                        cameraTarget=(-43.1066, 26.9322, 50.9591),
+                                                        viewOffsetX=-3.01476, viewOffsetY=5.85147)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#80 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=236.495,
+                                                        farPlane=398.444, width=196.091, height=87.5605,
+                                                        cameraPosition=(
+                                                            27.6261, 128.646, -241.893),
+                                                        cameraUpVector=(-0.133894, 0.787185,
+                                                                        0.602015),
+                                                        cameraTarget=(-57.9143, 23.3274, 60.1165),
+                                                        viewOffsetX=4.55259, viewOffsetY=1.75295)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.896,
+                                                        farPlane=405.31, width=138.939, height=62.0402, cameraPosition=(
+                -166.184, 127.658, -236.663), cameraUpVector=(0.0808666, 0.780936,
+                                                              0.619361), cameraTarget=(-51.7786, 24.6562, 56.4597),
+                                                        viewOffsetX=-0.464989, viewOffsetY=-9.09104)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[21], point3=v1[13],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[17], point2=v2[18], point3=v2[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=244.548,
+                                                        farPlane=403.657, width=131.491, height=58.7146,
+                                                        viewOffsetX=-7.61695,
+                                                        viewOffsetY=-0.80302)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[18], point2=v1[19], point3=v1[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=241.566,
+                                                        farPlane=406.639, width=176.981, height=79.0275,
+                                                        viewOffsetX=3.87345,
+                                                        viewOffsetY=-2.44882)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=236.698,
+                                                        farPlane=411.508, width=251.373, height=112.523,
+                                                        viewOffsetX=22.9834,
+                                                        viewOffsetY=-8.96822)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Two holes R20
+    if sheet_version == 32:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.598,
+                                                        farPlane=415.972, width=227.65, height=101.652,
+                                                        cameraPosition=(
+                                                            -312.534, 39.5699, 248.635),
+                                                        cameraUpVector=(0.19484, 0.913189,
+                                                                        -0.357944),
+                                                        cameraTarget=(-45.9591, 26.7442, 52.6943))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f1[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.843,
+                                                        farPlane=276.927, width=142.406, height=63.5884,
+                                                        cameraPosition=(
+                                                            -223.726, 145.568, 54.9545),
+                                                        cameraTarget=(-24.4221, 30.4997, 54.9545))
+        s1.ConstructionLine(point1=(-50.0, 1.5075), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s1.CircleByCenterPerimeter(center=(-22.6125000000015, 1.30666605313579e-07),
+                                   point1=(-39.195, 1.30666605313579e-07))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[6], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(22.6125000000015, 1.30666605313579e-07),
+                                   point1=(6.03, 1.30666605313579e-07))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[6], addUndoState=False)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.179,
+                                                        farPlane=277.59, width=171.453, height=76.5587,
+                                                        cameraPosition=(
+                                                            -225.309, 142.826, 58.6824),
+                                                        cameraTarget=(-26.0051, 27.7578, 58.6824))
+        s1.ConstructionLine(point1=(0.0, 1.30666605313579e-07), angle=90.0)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[5], entity2=g[2], symmetryAxis=g[9])
+        s1.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[9])
+        s1.HorizontalDimension(vertex1=v[4], vertex2=v[6], textPoint=(
+            -2.80773162841797, 20.4288429413966), value=50.0)
+        s1.EqualRadiusConstraint(entity1=g[7], entity2=g[8])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.843,
+                                                        farPlane=276.927, width=142.406, height=63.5884,
+                                                        cameraPosition=(
+                                                            -224.227, 144.7, 57.9286),
+                                                        cameraTarget=(-24.9229, 29.6323, 57.9286))
+        s1.RadialDimension(curve=g[7], textPoint=(-18.6790428161621, 4.69056781530244),
+                           radius=20.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=133.21,
+                                                        farPlane=282.56, width=248.529, height=110.976,
+                                                        cameraPosition=(
+                                                            -225.798, 141.978, 69.7942),
+                                                        cameraTarget=(-26.4947, 26.9098, 69.7942))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=250.776,
+                                                        farPlane=422.276, width=162.343, height=72.4909,
+                                                        cameraPosition=(
+                                                            221.604, 81.9631, 242.059),
+                                                        cameraUpVector=(-0.343302, 0.870507,
+                                                                        -0.352653),
+                                                        cameraTarget=(-43.1066, 26.9322, 50.9591),
+                                                        viewOffsetX=-3.01476, viewOffsetY=5.85147)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#80 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=236.495,
+                                                        farPlane=398.444, width=196.091, height=87.5605,
+                                                        cameraPosition=(
+                                                            27.6261, 128.646, -241.893),
+                                                        cameraUpVector=(-0.133894, 0.787185,
+                                                                        0.602015),
+                                                        cameraTarget=(-57.9143, 23.3274, 60.1165),
+                                                        viewOffsetX=4.55259, viewOffsetY=1.75295)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.896,
+                                                        farPlane=405.31, width=138.939, height=62.0402,
+                                                        cameraPosition=(
+                                                            -166.184, 127.658, -236.663),
+                                                        cameraUpVector=(0.0808666, 0.780936,
+                                                                        0.619361),
+                                                        cameraTarget=(-51.7786, 24.6562, 56.4597),
+                                                        viewOffsetX=-0.464989, viewOffsetY=-9.09104)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[21], point3=v1[13],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[17], point2=v2[18], point3=v2[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=244.548,
+                                                        farPlane=403.657, width=131.491, height=58.7146,
+                                                        viewOffsetX=-7.61695,
+                                                        viewOffsetY=-0.80302)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[18], point2=v1[19], point3=v1[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=241.566,
+                                                        farPlane=406.639, width=176.981, height=79.0275,
+                                                        viewOffsetX=3.87345,
+                                                        viewOffsetY=-2.44882)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=236.698,
+                                                        farPlane=411.508, width=251.373, height=112.523,
+                                                        viewOffsetX=22.9834,
+                                                        viewOffsetY=-8.96822)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Two holes R10
+    if sheet_version == 33:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.598,
+                                                        farPlane=415.972, width=227.65, height=101.652,
+                                                        cameraPosition=(
+                                                            -312.534, 39.5699, 248.635),
+                                                        cameraUpVector=(0.19484, 0.913189,
+                                                                        -0.357944),
+                                                        cameraTarget=(-45.9591, 26.7442, 52.6943))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f1[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.843,
+                                                        farPlane=276.927, width=142.406, height=63.5884,
+                                                        cameraPosition=(
+                                                            -223.726, 145.568, 54.9545),
+                                                        cameraTarget=(-24.4221, 30.4997, 54.9545))
+        s1.ConstructionLine(point1=(-50.0, 1.5075), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s1.CircleByCenterPerimeter(center=(-22.6125000000015, 1.30666605313579e-07),
+                                   point1=(-39.195, 1.30666605313579e-07))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[6], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(22.6125000000015, 1.30666605313579e-07),
+                                   point1=(6.03, 1.30666605313579e-07))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[6], addUndoState=False)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.179,
+                                                        farPlane=277.59, width=171.453, height=76.5587,
+                                                        cameraPosition=(
+                                                            -225.309, 142.826, 58.6824),
+                                                        cameraTarget=(-26.0051, 27.7578, 58.6824))
+        s1.ConstructionLine(point1=(0.0, 1.30666605313579e-07), angle=90.0)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[5], entity2=g[2], symmetryAxis=g[9])
+        s1.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[9])
+        s1.HorizontalDimension(vertex1=v[4], vertex2=v[6], textPoint=(
+            -2.80773162841797, 20.4288429413966), value=50.0)
+        s1.EqualRadiusConstraint(entity1=g[7], entity2=g[8])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.843,
+                                                        farPlane=276.927, width=142.406, height=63.5884,
+                                                        cameraPosition=(
+                                                            -224.227, 144.7, 57.9286),
+                                                        cameraTarget=(-24.9229, 29.6323, 57.9286))
+        s1.RadialDimension(curve=g[7], textPoint=(-18.6790428161621, 4.69056781530244),
+                           radius=10.0)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=133.21,
+                                                        farPlane=282.56, width=248.529, height=110.976,
+                                                        cameraPosition=(
+                                                            -225.798, 141.978, 69.7942),
+                                                        cameraTarget=(-26.4947, 26.9098, 69.7942))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=250.776,
+                                                        farPlane=422.276, width=162.343, height=72.4909,
+                                                        cameraPosition=(
+                                                            221.604, 81.9631, 242.059),
+                                                        cameraUpVector=(-0.343302, 0.870507,
+                                                                        -0.352653),
+                                                        cameraTarget=(-43.1066, 26.9322, 50.9591),
+                                                        viewOffsetX=-3.01476, viewOffsetY=5.85147)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#80 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=236.495,
+                                                        farPlane=398.444, width=196.091, height=87.5605,
+                                                        cameraPosition=(
+                                                            27.6261, 128.646, -241.893),
+                                                        cameraUpVector=(-0.133894, 0.787185,
+                                                                        0.602015),
+                                                        cameraTarget=(-57.9143, 23.3274, 60.1165),
+                                                        viewOffsetX=4.55259, viewOffsetY=1.75295)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.896,
+                                                        farPlane=405.31, width=138.939, height=62.0402,
+                                                        cameraPosition=(
+                                                            -166.184, 127.658, -236.663),
+                                                        cameraUpVector=(0.0808666, 0.780936,
+                                                                        0.619361),
+                                                        cameraTarget=(-51.7786, 24.6562, 56.4597),
+                                                        viewOffsetX=-0.464989, viewOffsetY=-9.09104)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[14], point2=v1[21], point3=v1[13],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[17], point2=v2[18], point3=v2[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=244.548,
+                                                        farPlane=403.657, width=131.491, height=58.7146,
+                                                        viewOffsetX=-7.61695,
+                                                        viewOffsetY=-0.80302)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[18], point2=v1[19], point3=v1[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=241.566,
+                                                        farPlane=406.639, width=176.981, height=79.0275,
+                                                        viewOffsetX=3.87345,
+                                                        viewOffsetY=-2.44882)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=236.698,
+                                                        farPlane=411.508, width=251.373, height=112.523,
+                                                        viewOffsetX=22.9834,
+                                                        viewOffsetY=-8.96822)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Two vertical Holes
+    if sheet_version == 41:
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=228.276,
+                                                        farPlane=405.069, width=189.143, height=96.5901,
+                                                        cameraPosition=(
+                                                            -192.094, 203.252, 275.236),
+                                                        cameraUpVector=(0.677453, 0.568552,
+                                                                        -0.466698),
+                                                        cameraTarget=(-39.8138, 23.6737, 39.5878))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f1[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=124.386,
+                                                        farPlane=252.866, width=118.832, height=60.6842,
+                                                        cameraPosition=(
+                                                            -230.265, 88.0361, 55.1817),
+                                                        cameraTarget=(-19.4388, 31.5453, 55.1817))
+        s1.ConstructionLine(point1=(-50.0, 2.9), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s1.ConstructionLine(point1=(-36.25, 0.0), angle=90.0)
+        s1.VerticalConstraint(entity=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-36.25, 7.25), point1=(-36.25,
+                                                                  12.405437841604))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-36.25, -8.7), point1=(-36.25,
+                                                                  -15.2249312654021))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[7], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[9], entity2=g[8])
+        s1.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[6])
+        s1.DistanceDimension(entity1=v[5], entity2=g[4], textPoint=(-23.93798828125,
+                                                                    18.1220653788536), value=5.0)
+        s1.RadialDimension(curve=g[8], textPoint=(-22.3222694396973, 7.20183992598989),
+                           radius=7.5)
+        s1.DistanceDimension(entity1=g[7], entity2=g[5], textPoint=(-44.5751266479492,
+                                                                    19.8810346444702), value=12.5)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=223.385,
+                                                        farPlane=397.989, width=144.509, height=73.7969,
+                                                        cameraPosition=(
+                                                            -218.599, 164.592, -174.869),
+                                                        cameraUpVector=(0.406707, 0.698375,
+                                                                        0.58896),
+                                                        cameraTarget=(-43.0608, 17.4061, 66.9779),
+                                                        viewOffsetX=-8.45532, viewOffsetY=-4.54576)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[10], point2=v1[7], point3=v1[4],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[11], point2=v2[8], point3=v2[19],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=222.685,
+                                                        farPlane=398.689, width=173.44, height=88.5709,
+                                                        viewOffsetX=-0.221298,
+                                                        viewOffsetY=-4.25947)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[20], point2=v1[21], point3=v1[13],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=217.021,
+                                                        farPlane=404.353, width=260.654, height=133.109,
+                                                        viewOffsetX=21.9149,
+                                                        viewOffsetY=-9.58211)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=181.545,
+                                                        farPlane=364.13, width=218.046, height=111.35,
+                                                        cameraPosition=(86.0805,
+                                                                        131.629, -165.145),
+                                                        cameraUpVector=(-0.226965, 0.7671, 0.600047),
+                                                        cameraTarget=(-95.3123, 21.7641, 91.7473), viewOffsetX=18.3326,
+                                                        viewOffsetY=-8.01575)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=240.341,
+                                                        farPlane=421.592, width=199.14, height=101.695, cameraPosition=(
+                -239.192, 137.967, -200.347), cameraUpVector=(0.260879, 0.782638,
+                                                              0.565185), cameraTarget=(-58.8922, 32.3867, 59.0994),
+                                                        viewOffsetX=5.49704, viewOffsetY=-19.1176)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400122 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=237.423,
+                                                        farPlane=424.51, width=268.049, height=137.224,
+                                                        viewOffsetX=22.4252,
+                                                        viewOffsetY=-25.5578)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Two vertical Holes beneath indenter
+    if sheet_version == 51:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=237.298,
+                                                        farPlane=415.96, width=222.676, height=99.4315, cameraPosition=(
+                -320.976, 121.696, 208.22), cameraUpVector=(0.411964, 0.78428,
+                                                            -0.463888), cameraTarget=(-44.5929, 25.6075, 53.3051))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f1[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.ConstructionLine(point1=(-50.0, 1.30666563791237e-07), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s1.CircleByCenterPerimeter(center=(-50.0, 15.075), point1=(-50.0, 22.6125))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-50.0, -12.06), point1=(-50.0, -22.6125))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[7], entity2=g[8])
+        s1.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[6])
+        s1.DistanceDimension(entity1=v[5], entity2=g[4], textPoint=(-37.9686889648438,
+                                                                    23.6945947204409), value=5.0)
+        s1.RadialDimension(curve=g[7], textPoint=(-53.9163627624512, 17.2549580817543),
+                           radius=7.5)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=138.842,
+                                                        farPlane=276.927, width=161.165, height=71.9651,
+                                                        cameraPosition=(
+                                                            -223.653, 145.694, 58.5291),
+                                                        cameraTarget=(-24.3495, 30.6255, 58.5291))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=232.141,
+                                                        farPlane=421.144, width=315.765, height=140.998,
+                                                        viewOffsetX=3.59896,
+                                                        viewOffsetY=-4.04663)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=267.653,
+                                                        farPlane=436.799, width=143.914, height=64.2617,
+                                                        cameraPosition=(
+                                                            212.633, -7.26791, -181.979),
+                                                        cameraUpVector=(-0.261133, 0.965302,
+                                                                        0.00208043),
+                                                        cameraTarget=(-36.7531, 39.1393, 30.7932),
+                                                        viewOffsetX=-7.66846, viewOffsetY=8.80129)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#100 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=265.395,
+                                                        farPlane=439.056, width=196.949, height=87.9437,
+                                                        viewOffsetX=11.3119,
+                                                        viewOffsetY=-5.93857)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#8018 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=263.327,
+                                                        farPlane=435.993, width=186.06, height=83.0814, cameraPosition=(
+                -197.01, 142.402, -247.15), cameraUpVector=(0.308982, 0.802842,
+                                                            0.509885), cameraTarget=(-60.5925, 45.8479, 38.6585),
+                                                        viewOffsetX=-3.51614, viewOffsetY=-13.0362)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[8], point2=v1[15], point3=v1[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=267.451,
+                                                        farPlane=431.868, width=130.368, height=58.2132,
+                                                        viewOffsetX=-11.8825,
+                                                        viewOffsetY=-22.9637)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=267.983,
+                                                        farPlane=431.337, width=130.627, height=58.3289,
+                                                        cameraPosition=(
+                                                            -193.417, 143.744, -248.412),
+                                                        cameraUpVector=(0.40814, 0.789661,
+                                                                        0.458102),
+                                                        cameraTarget=(-56.9986, 47.1903, 37.3967),
+                                                        viewOffsetX=-11.9062, viewOffsetY=-23.0094)
+        session.viewports['Viewport: 1'].view.setValues(width=138.966, height=62.0523,
+                                                        viewOffsetX=-10.1372, viewOffsetY=-21.9861)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[24], point2=v2[21], point3=v2[4],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=265.555,
+                                                        farPlane=433.765, width=156.484, height=69.8749,
+                                                        viewOffsetX=-16.0814,
+                                                        viewOffsetY=-7.88495)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[19], point2=v1[22], point3=v1[18],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=264.058,
+                                                        farPlane=435.262, width=199.298, height=88.9926,
+                                                        viewOffsetX=-4.17208,
+                                                        viewOffsetY=-7.11481)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=259.555,
+                                                        farPlane=439.766, width=268.02, height=119.975,
+                                                        viewOffsetX=17.1817,
+                                                        viewOffsetY=-18.3332)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Two vertical Holes over sheet complete beneath indenter
+    if sheet_version == 52:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=235.411,
+                                                        farPlane=418.885, width=220.905, height=98.6408,
+                                                        cameraPosition=(
+                                                            -238.776, 188.731, 265.567),
+                                                        cameraUpVector=(0.566859, 0.652126,
+                                                                        -0.503391),
+                                                        cameraTarget=(-44.6217, 25.1491, 53.0483))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e1 = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e1[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.ConstructionLine(point1=(-50.0, 1.5075), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.ConstructionLine(point1=(-31.6575, 1.5075), angle=90.0)
+        s1.VerticalConstraint(entity=g[7], addUndoState=False)
+        s1.ConstructionLine(point1=(-7.53750000000291, 1.5075), angle=90.0)
+        s1.VerticalConstraint(entity=g[8], addUndoState=False)
+        s1.ConstructionLine(point1=(19.5975000000017, 1.5075), angle=90.0)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s1.CircleByCenterPerimeter(center=(-31.6575, 15.075), point1=(-31.6575,
+                                                                      22.6125000000015))
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-31.6575, -13.5675000000023), point1=(
+            -31.6575, -22.6125000000015))
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[7], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-7.537500000003, -13.5675000000023),
+                                   point1=(-7.537500000003, -21.105))
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[8], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[8], entity2=g[8], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-7.537500000003, 15.075), point1=(
+            -7.537500000003, 22.6125000000015))
+        s1.CoincidentConstraint(entity1=v[11], entity2=g[8], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[10], entity2=g[8], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(19.5975000000017, 13.5675000000023),
+                                   point1=(19.5975000000017, 21.105))
+        s1.CoincidentConstraint(entity1=v[13], entity2=g[9], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[12], entity2=g[9], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(19.5975000000017, -15.075), point1=(
+            19.5975000000017, -21.105))
+        s1.CoincidentConstraint(entity1=v[15], entity2=g[9], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[14], entity2=g[9], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-50.0, 15.075), point1=(-50.0, 22.6125))
+        s1.CoincidentConstraint(entity1=v[17], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[16], entity2=g[5], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(-50.0, -15.075), point1=(-50.0, -22.6125))
+        s1.CoincidentConstraint(entity1=v[19], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[18], entity2=g[5], addUndoState=False)
+        s1.SymmetryConstraint(entity1=v[16], entity2=v[18], symmetryAxis=g[6])
+        s1.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[6])
+        s1.SymmetryConstraint(entity1=v[10], entity2=v[8], symmetryAxis=g[6])
+        s1.SymmetryConstraint(entity1=v[12], entity2=v[14], symmetryAxis=g[6])
+        s1.EqualRadiusConstraint(entity1=g[16], entity2=g[17])
+        s1.EqualRadiusConstraint(entity1=g[17], entity2=g[11], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[11], entity2=g[10], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[10], entity2=g[13], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[13], entity2=g[12], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[12], entity2=g[15], addUndoState=False)
+        s1.EqualRadiusConstraint(entity1=g[15], entity2=g[14], addUndoState=False)
+        s1.ConstructionLine(point1=(-50.0, 15.0750000653333), angle=0.0)
+        s1.CoincidentConstraint(entity1=v[16], entity2=g[18], addUndoState=False)
+        s1.HorizontalConstraint(entity=g[18], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[18])
+        s1.CoincidentConstraint(entity1=v[10], entity2=g[18])
+        s1.CoincidentConstraint(entity1=v[12], entity2=g[18])
+        s1.DistanceDimension(entity1=v[17], entity2=g[4], textPoint=(-56.7257995605469,
+                                                                     24.6853134464754), value=5.0)
+        s1.CircleByCenterPerimeter(center=(48.24, 15.9258684017151), point1=(50.0,
+                                                                             7.5375))
+        s1.CoincidentConstraint(entity1=v[21], entity2=g[2], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[20], entity2=g[18], addUndoState=False)
+        s1.CircleByCenterPerimeter(center=(50.0, -13.5675), point1=(50.0,
+                                                                    -21.8782551717748))
+        s1.CoincidentConstraint(entity1=v[23], entity2=g[2], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[22], entity2=g[2], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[20], entity2=g[2])
+        s1.SymmetryConstraint(entity1=v[20], entity2=v[22], symmetryAxis=g[6])
+        s1.EqualRadiusConstraint(entity1=g[19], entity2=g[20])
+        s1.EqualRadiusConstraint(entity1=g[20], entity2=g[15], addUndoState=False)
+        s1.DistanceDimension(entity1=g[7], entity2=g[5], textPoint=(-41.1912727355957,
+                                                                    3.5500751946517), value=25.0)
+        s1.DistanceDimension(entity1=g[7], entity2=g[8], textPoint=(-14.005859375,
+                                                                    -3.96284184654383), value=25.0)
+        s1.DistanceDimension(entity1=g[8], entity2=g[9], textPoint=(13.2621917724609,
+                                                                    -3.05468377483879), value=25.0)
+        s1.RadialDimension(curve=g[16], textPoint=(-47.5538177490234,
+                                                   12.5490616733594), radius=7.5)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=137.474,
+                                                        farPlane=278.296, width=182.396, height=81.4454,
+                                                        cameraPosition=(
+                                                            -223.802, 145.436, 54.6722),
+                                                        cameraTarget=(-24.4984, 30.3676, 54.6722))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=229.081,
+                                                        farPlane=425.214, width=331.493, height=148.021,
+                                                        viewOffsetX=-10.7516,
+                                                        viewOffsetY=-1.4213)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.265,
+                                                        farPlane=385.079, width=188.999, height=84.3934,
+                                                        cameraPosition=(
+                                                            209.17, 68.0137, 196.024),
+                                                        cameraUpVector=(-0.297745, 0.886858,
+                                                                        -0.353315),
+                                                        cameraTarget=(-72.7064, 30.2817, 26.4931),
+                                                        viewOffsetX=-9.55601, viewOffsetY=5.88954)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#80000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=245.5,
+                                                        farPlane=389.379, width=216.551, height=96.6964,
+                                                        cameraPosition=(
+                                                            -31.5867, 60.8458, -265.961),
+                                                        cameraUpVector=(0.059877, 0.911015,
+                                                                        0.408012),
+                                                        cameraTarget=(-66.5704, 37.2156, 62.4236),
+                                                        viewOffsetX=-10.9491, viewOffsetY=6.74812)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2003000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=228.292,
+                                                        farPlane=394.407, width=201.371, height=90.141, cameraPosition=(
+                -153.922, 119.02, -230.472), cameraUpVector=(0.312885, 0.812978,
+                                                             0.491102), cameraTarget=(-58.9893, 33.6933, 75.0217),
+                                                        viewOffsetX=-11.2063, viewOffsetY=0.687187)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[40], point2=v2[37], point3=v2[45],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=232.011,
+                                                        farPlane=390.687, width=150.195, height=67.2326,
+                                                        viewOffsetX=-19.5158,
+                                                        viewOffsetY=-7.65637)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[6], point2=v1[9], point3=v1[46],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[42], point2=v2[45], point3=v2[41],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=229.769,
+                                                        farPlane=392.929, width=203.504, height=91.0957,
+                                                        viewOffsetX=-9.78857,
+                                                        viewOffsetY=-9.17615)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=225.314,
+                                                        farPlane=397.384, width=271.913, height=121.718,
+                                                        viewOffsetX=2.11691,
+                                                        viewOffsetY=-14.8138)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=249.887,
+                                                        farPlane=415.699, width=235.449, height=120.237,
+                                                        cameraPosition=(
+                                                            -113.967, 86.9661, 372.67),
+                                                        cameraUpVector=(0.187181, 0.870281,
+                                                                        -0.455621),
+                                                        cameraTarget=(-29.4685, 30.6259, 57.5423),
+                                                        viewOffsetX=10.3887, viewOffsetY=-6.7197)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#180092 #2 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Clamp')
+
+    # Two vertical Holes over sheet complete not beneath indenter
+    if sheet_version == 42:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=246.697,
+                                                        farPlane=413.58, width=231.496, height=103.37, cameraPosition=(
+                -117.164, 157.981, 347.158), cameraUpVector=(-0.112191, 0.693104,
+                                                             -0.712054), cameraTarget=(-45.7447, 25.7098, 52.1623))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-24.104374,
+                                                                                          31.05, 50.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=241.43, gridSpacing=6.03, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.ConstructionLine(point1=(-50.0, 1.5075), angle=0.0)
+        s.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s.SymmetryConstraint(entity1=g[4], entity2=g[3], symmetryAxis=g[6])
+        s.ConstructionLine(point1=(-30.15, 1.30666605313579e-07), angle=90.0)
+        s.VerticalConstraint(entity=g[7], addUndoState=False)
+        s.ConstructionLine(point1=(-9.045, 1.30666605313579e-07), angle=90.0)
+        s.VerticalConstraint(entity=g[8], addUndoState=False)
+        s.ConstructionLine(point1=(12.06, 1.30666605313579e-07), angle=90.0)
+        s.VerticalConstraint(entity=g[9], addUndoState=False)
+        s.ConstructionLine(point1=(33.165, 1.30666605313579e-07), angle=90.0)
+        s.VerticalConstraint(entity=g[10], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(-30.15, 13.5675000000023), point1=(-30.15,
+                                                                             22.6125000000015))
+        s.CoincidentConstraint(entity1=v[5], entity2=g[7], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(-30.15, -13.5675000000023), point1=(-30.15,
+                                                                              -24.12))
+        s.CoincidentConstraint(entity1=v[7], entity2=g[7], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[6], entity2=g[7], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(-9.045, -13.5675000000023), point1=(-9.045,
+                                                                              -22.6125000000015))
+        s.CoincidentConstraint(entity1=v[9], entity2=g[8], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[8], entity2=g[8], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(-9.045, 15.075), point1=(-9.045,
+                                                                   22.6125000000015))
+        s.CoincidentConstraint(entity1=v[11], entity2=g[8], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[10], entity2=g[8], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(12.06, 13.5675000000023), point1=(12.06,
+                                                                            21.105))
+        s.CoincidentConstraint(entity1=v[13], entity2=g[9], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[12], entity2=g[9], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(12.06, -15.075), point1=(12.06,
+                                                                   -22.6125000000015))
+        s.CoincidentConstraint(entity1=v[15], entity2=g[9], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[14], entity2=g[9], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(33.165, -15.075), point1=(33.165,
+                                                                    -22.6125000000015))
+        s.CoincidentConstraint(entity1=v[17], entity2=g[10], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[16], entity2=g[10], addUndoState=False)
+        s.CircleByCenterPerimeter(center=(33.165, 15.075), point1=(33.165, 21.105))
+        s.CoincidentConstraint(entity1=v[19], entity2=g[10], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[18], entity2=g[10], addUndoState=False)
+        s.EqualRadiusConstraint(entity1=g[11], entity2=g[12])
+        s.EqualRadiusConstraint(entity1=g[12], entity2=g[13], addUndoState=False)
+        s.EqualRadiusConstraint(entity1=g[13], entity2=g[14], addUndoState=False)
+        s.EqualRadiusConstraint(entity1=g[14], entity2=g[15], addUndoState=False)
+        s.EqualRadiusConstraint(entity1=g[15], entity2=g[16], addUndoState=False)
+        s.EqualRadiusConstraint(entity1=g[16], entity2=g[17], addUndoState=False)
+        s.EqualRadiusConstraint(entity1=g[17], entity2=g[18], addUndoState=False)
+        s.SymmetryConstraint(entity1=v[4], entity2=v[6], symmetryAxis=g[6])
+        s.SymmetryConstraint(entity1=v[8], entity2=v[10], symmetryAxis=g[6])
+        s.SymmetryConstraint(entity1=v[12], entity2=v[14], symmetryAxis=g[6])
+        s.SymmetryConstraint(entity1=v[16], entity2=v[18], symmetryAxis=g[6])
+        s.RadialDimension(curve=g[11], textPoint=(-33.8371658325195, 18.5759006255032),
+                          radius=7.5)
+        s.DistanceDimension(entity1=g[7], entity2=g[5], textPoint=(-43.0091438293457,
+                                                                   21.4654885198826), value=12.5)
+        s.DistanceDimension(entity1=g[7], entity2=g[8], textPoint=(-24.5825538635254,
+                                                                   20.639891102507), value=25.0)
+        s.DistanceDimension(entity1=g[8], entity2=g[9], textPoint=(-0.289199829101562,
+                                                                   19.2363746899298), value=25.0)
+        s.DistanceDimension(entity1=g[9], entity2=g[10], textPoint=(23.4257354736328,
+                                                                    21.9608336462559), value=25.0)
+        s.DistanceDimension(entity1=v[5], entity2=g[4], textPoint=(-42.017578125,
+                                                                   26.1713772988831), value=5.0)
+        s.ConstructionLine(point1=(-37.5, 13.4633684017151), angle=0.0)
+        s.CoincidentConstraint(entity1=v[4], entity2=g[19], addUndoState=False)
+        s.HorizontalConstraint(entity=g[19], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[10], entity2=g[19])
+        s.CoincidentConstraint(entity1=v[12], entity2=g[19])
+        s.CoincidentConstraint(entity1=v[18], entity2=g[19])
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=239.996,
+                                                        farPlane=420.21, width=347.287, height=155.074,
+                                                        viewOffsetX=-6.15288,
+                                                        viewOffsetY=-4.6416)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=242.352,
+                                                        farPlane=414.773, width=147.476, height=65.8523,
+                                                        cameraPosition=(
+                                                            186.564, 92.1625, 269.675),
+                                                        cameraUpVector=(-0.352678, 0.853545,
+                                                                        -0.383513),
+                                                        cameraTarget=(-49.1751, 24.1672, 47.3623),
+                                                        viewOffsetX=2.13787, viewOffsetY=9.31969)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#2000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=259.337,
+                                                        farPlane=421.179, width=157.812, height=70.4677,
+                                                        cameraPosition=(
+                                                            93.3477, 63.6719, -257),
+                                                        cameraUpVector=(-0.020292, 0.875978,
+                                                                        0.481934),
+                                                        cameraTarget=(-51.565, 23.9861, 38.0329),
+                                                        viewOffsetX=2.2877, viewOffsetY=9.97287)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#80000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=281.59,
+                                                        farPlane=447.327, width=133.784, height=59.7383,
+                                                        cameraPosition=(
+                                                            -224.818, 108.007, -260.488),
+                                                        cameraUpVector=(0.280153, 0.837274,
+                                                                        0.469573),
+                                                        cameraTarget=(-71.3114, 29.8766, 22.2672),
+                                                        viewOffsetX=-0.973341, viewOffsetY=-4.00364)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[26], point2=v1[33], point3=v1[25],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[29], point2=v2[30], point3=v2[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=282.688,
+                                                        farPlane=446.229, width=118.672, height=52.9907,
+                                                        viewOffsetX=-14.4959,
+                                                        viewOffsetY=13.2147)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#4 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[30], point2=v1[31], point3=v1[9],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=276.446,
+                                                        farPlane=452.471, width=230.154, height=102.771,
+                                                        viewOffsetX=10.9624,
+                                                        viewOffsetY=11.9587)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=270.165,
+                                                        farPlane=458.752, width=326.04, height=145.947,
+                                                        viewOffsetX=24.8318,
+                                                        viewOffsetY=4.63139)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Triangles left top pointy 10 distance between holes
+    if sheet_version == 61:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.793,
+                                                        farPlane=401.515, width=275.42, height=140.649, cameraPosition=(
+                -271.198, 203.748, 178.682), cameraUpVector=(0.691626, 0.600966,
+                                                             -0.400616), cameraTarget=(-46.1625, 31.9982, 51.2263))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.ConstructionLine(point1=(-50.0, 13.05), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.ConstructionLine(point1=(-50.0, -10.15), angle=0.0)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.Line(point1=(-49.3, 13.05), point2=(-36.25, -10.15))
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s1.AngularDimension(line1=g[8], line2=g[7], textPoint=(-42.2529296875,
+                                                               -7.57234512756614), value=60.0)
+        s1.setAsConstruction(objectList=(g[8],))
+        s1.ConstructionLine(point1=(-50.0, 13.05), angle=90.0)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[9], addUndoState=False)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.ArcByCenterEnds(center=(-50.0, 2.26523625469679), point1=(-50.0,
+                                                                     9.38453585152457),
+                           point2=(-47.85, 9.32609076372724),
+                           direction=CLOCKWISE)
+        s1.CoincidentConstraint(entity1=v[8], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[8], addUndoState=False)
+        s1.TangentConstraint(entity1=g[8], entity2=g[10])
+        s1.Line(point1=(-50.0, 9.38453585152457), point2=(-50.0, -7.50762373135904))
+        s1.VerticalConstraint(entity=g[11], addUndoState=False)
+        s1.PerpendicularConstraint(entity1=g[10], entity2=g[11], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[5], addUndoState=False)
+        s1.Line(point1=(-50.0, -7.50762373135904), point2=(-35.1099191354185,
+                                                           -9.28654113791191))
+        s1.Line(point1=(-35.1099191354185, -9.28654113791191), point2=(
+            -41.3449630737305, 5.24239572642994))
+        s1.CoincidentConstraint(entity1=v[10], entity2=v[7])
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[7])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=122.234,
+                                                        farPlane=255.018, width=152.203, height=77.7256,
+                                                        cameraPosition=(
+                                                            -231.205, 84.5297, 60.4197),
+                                                        cameraTarget=(-20.3783, 28.0389, 60.4197))
+        s1.Line(point1=(-13.05, 16.5038354483523), point2=(2.9, -9.286541137912))
+        s1.CoincidentConstraint(entity1=v[11], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[12], entity2=g[7], addUndoState=False)
+        s1.Line(point1=(2.9, -9.286541137912), point2=(17.4, 16.5038354483523))
+        s1.CoincidentConstraint(entity1=v[13], entity2=g[6], addUndoState=False)
+        s1.Line(point1=(17.4, 16.5038354483523), point2=(-13.05, 16.5038354483523))
+        s1.HorizontalConstraint(entity=g[16], addUndoState=False)
+        s1.RadialDimension(curve=g[10], textPoint=(-56.131893157959,
+                                                   -3.69799174397333), radius=1.5)
+        s1.ParallelConstraint(entity1=g[14], entity2=g[8])
+        s1.VerticalConstraint(entity=g[15])
+        s1.DistanceDimension(entity1=g[8], entity2=g[14], textPoint=(-38.6356506347656,
+                                                                     1.65268599434114), value=10.0)
+        s1.DistanceDimension(entity1=g[6], entity2=g[4], textPoint=(-20.4809455871582,
+                                                                    17.1414926201065), value=5.0)
+        s1.dragEntity(entity=v[13], points=((-30.0515220213973, 5.26523625469679), (
+            -30.45, 5.8), (-30.45, 5.8)))
+        s1.DistanceDimension(entity1=g[7], entity2=g[3], textPoint=(-22.6444625854492,
+                                                                    -13.2728866728169), value=5.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=204.6,
+                                                        farPlane=352.314, width=163.69, height=83.5921, cameraPosition=(
+                -27.4426, 182.94, -182.12), cameraUpVector=(0.91385, -0.292877,
+                                                            0.28126), cameraTarget=(-48.7725, 9.41912, 74.433))
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        p.Round(radius=1.5, edgeList=(e[1], e[3], e[6], e[12]))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=223.007,
+                                                        farPlane=389.393, width=359.449, height=183.56, cameraPosition=(
+                -321.683, 173.903, 61.9445), cameraUpVector=(0.76919, 0.636648,
+                                                             0.0551575), cameraTarget=(-55.58, 14.2135, 70.4531))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=165.208,
+                                                        farPlane=310.909, width=218.533, height=111.599,
+                                                        cameraPosition=(
+                                                            184.674, 66.6903, 28.2386),
+                                                        cameraUpVector=(-0.42391, 0.905646,
+                                                                        0.0111016),
+                                                        cameraTarget=(-123.134, 36.5505, 55.2559))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=172.404,
+                                                        farPlane=305.198, width=170.081, height=86.8558,
+                                                        cameraPosition=(
+                                                            -69.4879, 28.7928, -188.051),
+                                                        cameraUpVector=(-0.0636277, 0.946711,
+                                                                        0.31577),
+                                                        cameraTarget=(-48.5032, 36.2302, 121.607))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=168.183,
+                                                        farPlane=323.337, width=147.268, height=75.2055,
+                                                        cameraPosition=(
+                                                            -130.226, 69.3277, -179.948),
+                                                        cameraUpVector=(0.18195, 0.849683,
+                                                                        0.49493),
+                                                        cameraTarget=(-47.6673, 3.39936, 111.979))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[26], point2=v2[23], point3=v2[35],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[6], point2=v1[9], point3=v1[32],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=167.35,
+                                                        farPlane=324.171, width=158.69, height=81.0386, cameraPosition=(
+                -108.798, 98.9307, -179.323), cameraTarget=(-26.2387, 33.0024,
+                                                            112.604))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[35], point2=v2[36], point3=v2[34],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=163.151,
+                                                        farPlane=328.369, width=244.712, height=124.967,
+                                                        cameraPosition=(
+                                                            -134.006, 101.91, -171.521),
+                                                        cameraTarget=(-51.4471, 35.9821, 120.406))
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=154.538,
+                                                        farPlane=336.982, width=377.363, height=193.186,
+                                                        cameraPosition=(
+                                                            -174.761, 97.0852, -161.085),
+                                                        cameraTarget=(-92.2018, 31.1569,
+                                                                      130.842))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Triangles left top pointy 15 distance between holes
+    if sheet_version == 62:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.793,
+                                                        farPlane=401.515, width=275.42, height=140.649, cameraPosition=(
+                -271.198, 203.748, 178.682), cameraUpVector=(0.691626, 0.600966,
+                                                             -0.400616), cameraTarget=(-46.1625, 31.9982, 51.2263))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.ConstructionLine(point1=(-50.0, 13.05), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.ConstructionLine(point1=(-50.0, -10.15), angle=0.0)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.Line(point1=(-49.3, 13.05), point2=(-36.25, -10.15))
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s1.AngularDimension(line1=g[8], line2=g[7], textPoint=(-42.2529296875,
+                                                               -7.57234512756614), value=60.0)
+        s1.setAsConstruction(objectList=(g[8],))
+        s1.ConstructionLine(point1=(-50.0, 13.05), angle=90.0)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[9], addUndoState=False)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.ArcByCenterEnds(center=(-50.0, 2.26523625469679), point1=(-50.0,
+                                                                     9.38453585152457),
+                           point2=(-47.85, 9.32609076372724),
+                           direction=CLOCKWISE)
+        s1.CoincidentConstraint(entity1=v[8], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[8], addUndoState=False)
+        s1.TangentConstraint(entity1=g[8], entity2=g[10])
+        s1.Line(point1=(-50.0, 9.38453585152457), point2=(-50.0, -7.50762373135904))
+        s1.VerticalConstraint(entity=g[11], addUndoState=False)
+        s1.PerpendicularConstraint(entity1=g[10], entity2=g[11], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[5], addUndoState=False)
+        s1.Line(point1=(-50.0, -7.50762373135904), point2=(-35.1099191354185,
+                                                           -9.28654113791191))
+        s1.Line(point1=(-35.1099191354185, -9.28654113791191), point2=(
+            -41.3449630737305, 5.24239572642994))
+        s1.CoincidentConstraint(entity1=v[10], entity2=v[7])
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[7])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=122.234,
+                                                        farPlane=255.018, width=152.203, height=77.7256,
+                                                        cameraPosition=(
+                                                            -231.205, 84.5297, 60.4197),
+                                                        cameraTarget=(-20.3783, 28.0389, 60.4197))
+        s1.Line(point1=(-13.05, 16.5038354483523), point2=(2.9, -9.286541137912))
+        s1.CoincidentConstraint(entity1=v[11], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[12], entity2=g[7], addUndoState=False)
+        s1.Line(point1=(2.9, -9.286541137912), point2=(17.4, 16.5038354483523))
+        s1.CoincidentConstraint(entity1=v[13], entity2=g[6], addUndoState=False)
+        s1.Line(point1=(17.4, 16.5038354483523), point2=(-13.05, 16.5038354483523))
+        s1.HorizontalConstraint(entity=g[16], addUndoState=False)
+        s1.RadialDimension(curve=g[10], textPoint=(-56.131893157959,
+                                                   -3.69799174397333), radius=1.5)
+        s1.ParallelConstraint(entity1=g[14], entity2=g[8])
+        s1.VerticalConstraint(entity=g[15])
+        s1.DistanceDimension(entity1=g[8], entity2=g[14], textPoint=(-38.6356506347656,
+                                                                     1.65268599434114), value=15.0)
+        s1.DistanceDimension(entity1=g[6], entity2=g[4], textPoint=(-20.4809455871582,
+                                                                    17.1414926201065), value=5.0)
+        s1.dragEntity(entity=v[13], points=((-30.0515220213973, 5.26523625469679), (
+            -30.45, 5.8), (-30.45, 5.8)))
+        s1.DistanceDimension(entity1=g[7], entity2=g[3], textPoint=(-22.6444625854492,
+                                                                    -13.2728866728169), value=5.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=204.6,
+                                                        farPlane=352.314, width=163.69, height=83.5921, cameraPosition=(
+                -27.4426, 182.94, -182.12), cameraUpVector=(0.91385, -0.292877,
+                                                            0.28126), cameraTarget=(-48.7725, 9.41912, 74.433))
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        p.Round(radius=1.5, edgeList=(e[1], e[3], e[6], e[12]))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=223.007,
+                                                        farPlane=389.393, width=359.449, height=183.56, cameraPosition=(
+                -321.683, 173.903, 61.9445), cameraUpVector=(0.76919, 0.636648,
+                                                             0.0551575), cameraTarget=(-55.58, 14.2135, 70.4531))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=165.208,
+                                                        farPlane=310.909, width=218.533, height=111.599,
+                                                        cameraPosition=(
+                                                            184.674, 66.6903, 28.2386),
+                                                        cameraUpVector=(-0.42391, 0.905646,
+                                                                        0.0111016),
+                                                        cameraTarget=(-123.134, 36.5505, 55.2559))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=172.404,
+                                                        farPlane=305.198, width=170.081, height=86.8558,
+                                                        cameraPosition=(
+                                                            -69.4879, 28.7928, -188.051),
+                                                        cameraUpVector=(-0.0636277, 0.946711,
+                                                                        0.31577),
+                                                        cameraTarget=(-48.5032, 36.2302, 121.607))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=168.183,
+                                                        farPlane=323.337, width=147.268, height=75.2055,
+                                                        cameraPosition=(
+                                                            -130.226, 69.3277, -179.948),
+                                                        cameraUpVector=(0.18195, 0.849683,
+                                                                        0.49493),
+                                                        cameraTarget=(-47.6673, 3.39936, 111.979))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[26], point2=v2[23], point3=v2[35],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[6], point2=v1[9], point3=v1[32],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=167.35,
+                                                        farPlane=324.171, width=158.69, height=81.0386, cameraPosition=(
+                -108.798, 98.9307, -179.323), cameraTarget=(-26.2387, 33.0024,
+                                                            112.604))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[35], point2=v2[36], point3=v2[34],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=163.151,
+                                                        farPlane=328.369, width=244.712, height=124.967,
+                                                        cameraPosition=(
+                                                            -134.006, 101.91, -171.521),
+                                                        cameraTarget=(-51.4471, 35.9821, 120.406))
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=154.538,
+                                                        farPlane=336.982, width=377.363, height=193.186,
+                                                        cameraPosition=(
+                                                            -174.761, 97.0852, -161.085),
+                                                        cameraTarget=(-92.2018, 31.1569,
+                                                                      130.842))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Triangles left top pointy 20 distance between holes
+    if sheet_version == 63:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.793,
+                                                        farPlane=401.515, width=275.42, height=140.649,
+                                                        cameraPosition=(
+                                                            -271.198, 203.748, 178.682),
+                                                        cameraUpVector=(0.691626, 0.600966,
+                                                                        -0.400616),
+                                                        cameraTarget=(-46.1625, 31.9982, 51.2263))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s1 = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                     sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s1.geometry, s1.vertices, s1.dimensions, s1.constraints
+        s1.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
+        s1.ConstructionLine(point1=(-50.0, 13.05), angle=0.0)
+        s1.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s1.ConstructionLine(point1=(-50.0, -10.15), angle=0.0)
+        s1.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s1.Line(point1=(-49.3, 13.05), point2=(-36.25, -10.15))
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[5], entity2=g[7], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s1.AngularDimension(line1=g[8], line2=g[7], textPoint=(-42.2529296875,
+                                                               -7.57234512756614), value=60.0)
+        s1.setAsConstruction(objectList=(g[8],))
+        s1.ConstructionLine(point1=(-50.0, 13.05), angle=90.0)
+        s1.CoincidentConstraint(entity1=v[4], entity2=g[9], addUndoState=False)
+        s1.VerticalConstraint(entity=g[9], addUndoState=False)
+        s1.ArcByCenterEnds(center=(-50.0, 2.26523625469679), point1=(-50.0,
+                                                                     9.38453585152457),
+                           point2=(-47.85, 9.32609076372724),
+                           direction=CLOCKWISE)
+        s1.CoincidentConstraint(entity1=v[8], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[7], entity2=g[8], addUndoState=False)
+        s1.TangentConstraint(entity1=g[8], entity2=g[10])
+        s1.Line(point1=(-50.0, 9.38453585152457), point2=(-50.0, -7.50762373135904))
+        s1.VerticalConstraint(entity=g[11], addUndoState=False)
+        s1.PerpendicularConstraint(entity1=g[10], entity2=g[11], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[5], addUndoState=False)
+        s1.Line(point1=(-50.0, -7.50762373135904), point2=(-35.1099191354185,
+                                                           -9.28654113791191))
+        s1.Line(point1=(-35.1099191354185, -9.28654113791191), point2=(
+            -41.3449630737305, 5.24239572642994))
+        s1.CoincidentConstraint(entity1=v[10], entity2=v[7])
+        s1.CoincidentConstraint(entity1=v[9], entity2=g[7])
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=122.234,
+                                                        farPlane=255.018, width=152.203, height=77.7256,
+                                                        cameraPosition=(
+                                                            -231.205, 84.5297, 60.4197),
+                                                        cameraTarget=(-20.3783, 28.0389, 60.4197))
+        s1.Line(point1=(-13.05, 16.5038354483523), point2=(2.9, -9.286541137912))
+        s1.CoincidentConstraint(entity1=v[11], entity2=g[6], addUndoState=False)
+        s1.CoincidentConstraint(entity1=v[12], entity2=g[7], addUndoState=False)
+        s1.Line(point1=(2.9, -9.286541137912), point2=(17.4, 16.5038354483523))
+        s1.CoincidentConstraint(entity1=v[13], entity2=g[6], addUndoState=False)
+        s1.Line(point1=(17.4, 16.5038354483523), point2=(-13.05, 16.5038354483523))
+        s1.HorizontalConstraint(entity=g[16], addUndoState=False)
+        s1.RadialDimension(curve=g[10], textPoint=(-56.131893157959,
+                                                   -3.69799174397333), radius=1.5)
+        s1.ParallelConstraint(entity1=g[14], entity2=g[8])
+        s1.VerticalConstraint(entity=g[15])
+        s1.DistanceDimension(entity1=g[8], entity2=g[14], textPoint=(-38.6356506347656,
+                                                                     1.65268599434114), value=20.0)
+        s1.DistanceDimension(entity1=g[6], entity2=g[4], textPoint=(-20.4809455871582,
+                                                                    17.1414926201065), value=5.0)
+        s1.dragEntity(entity=v[13], points=((-30.0515220213973, 5.26523625469679), (
+            -30.45, 5.8), (-30.45, 5.8)))
+        s1.DistanceDimension(entity1=g[7], entity2=g[3], textPoint=(-22.6444625854492,
+                                                                    -13.2728866728169), value=5.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s1, flipExtrudeDirection=OFF)
+        s1.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=204.6,
+                                                        farPlane=352.314, width=163.69, height=83.5921,
+                                                        cameraPosition=(
+                                                            -27.4426, 182.94, -182.12),
+                                                        cameraUpVector=(0.91385, -0.292877,
+                                                                        0.28126),
+                                                        cameraTarget=(-48.7725, 9.41912, 74.433))
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        p.Round(radius=1.5, edgeList=(e[1], e[3], e[6], e[12]))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=223.007,
+                                                        farPlane=389.393, width=359.449, height=183.56,
+                                                        cameraPosition=(
+                                                            -321.683, 173.903, 61.9445),
+                                                        cameraUpVector=(0.76919, 0.636648,
+                                                                        0.0551575),
+                                                        cameraTarget=(-55.58, 14.2135, 70.4531))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=165.208,
+                                                        farPlane=310.909, width=218.533, height=111.599,
+                                                        cameraPosition=(
+                                                            184.674, 66.6903, 28.2386),
+                                                        cameraUpVector=(-0.42391, 0.905646,
+                                                                        0.0111016),
+                                                        cameraTarget=(-123.134, 36.5505, 55.2559))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=172.404,
+                                                        farPlane=305.198, width=170.081, height=86.8558,
+                                                        cameraPosition=(
+                                                            -69.4879, 28.7928, -188.051),
+                                                        cameraUpVector=(-0.0636277, 0.946711,
+                                                                        0.31577),
+                                                        cameraTarget=(-48.5032, 36.2302, 121.607))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=168.183,
+                                                        farPlane=323.337, width=147.268, height=75.2055,
+                                                        cameraPosition=(
+                                                            -130.226, 69.3277, -179.948),
+                                                        cameraUpVector=(0.18195, 0.849683,
+                                                                        0.49493),
+                                                        cameraTarget=(-47.6673, 3.39936, 111.979))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[26], point2=v2[23], point3=v2[35],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[6], point2=v1[9], point3=v1[32],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=167.35,
+                                                        farPlane=324.171, width=158.69, height=81.0386,
+                                                        cameraPosition=(
+                                                            -108.798, 98.9307, -179.323),
+                                                        cameraTarget=(-26.2387, 33.0024,
+                                                                      112.604))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#2 ]',), )
+        v2, e1, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[35], point2=v2[36], point3=v2[34],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=163.151,
+                                                        farPlane=328.369, width=244.712, height=124.967,
+                                                        cameraPosition=(
+                                                            -134.006, 101.91, -171.521),
+                                                        cameraTarget=(-51.4471, 35.9821, 120.406))
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=154.538,
+                                                        farPlane=336.982, width=377.363, height=193.186,
+                                                        cameraPosition=(
+                                                            -174.761, 97.0852, -161.085),
+                                                        cameraTarget=(-92.2018, 31.1569,
+                                                                      130.842))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Triangles left bottom pointy 10 distance between holes
+    if sheet_version == 71:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.885,
+                                                        farPlane=406.578, width=276.959, height=141.435,
+                                                        cameraPosition=(
+                                                            -266.189, 181.18, 216.022),
+                                                        cameraUpVector=(0.529688, 0.664582,
+                                                                        -0.527031),
+                                                        cameraTarget=(-49.1057, 32.9081, 50.8724))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.ConstructionLine(point1=(-50.0, 13.05), angle=0.0)
+        s.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s.ConstructionLine(point1=(-50.0, -10.15), angle=0.0)
+        s.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s.Line(point1=(-47.85, -10.15), point2=(-29.7359466552734, 13.05))
+        s.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[5], entity2=g[6], addUndoState=False)
+        s.setAsConstruction(objectList=(g[8],))
+        s.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s.AngularDimension(line1=g[8], line2=g[5], textPoint=(-46.8576240539551,
+                                                              2.91244231823742), value=30.0)
+        s.ArcByCenterEnds(center=(-50.0, 4.98351409086673), point1=(-50.0,
+                                                                    -3.68908663803473),
+                          point2=(-46.4, -3.91461709275183),
+                          direction=COUNTERCLOCKWISE)
+        s.CoincidentConstraint(entity1=v[8], entity2=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[7], entity2=g[8], addUndoState=False)
+        s.TangentConstraint(entity1=g[9], entity2=g[8])
+        s.Line(point1=(-50.0, -3.68908663803473), point2=(-50.75, 10.15))
+        s.Line(point1=(-50.75, 10.15), point2=(-35.6477850323028, 12.4970781582659))
+        s.Line(point1=(-35.6477850323028, 12.4970781582659), point2=(-40.6, 0.0))
+        s.CoincidentConstraint(entity1=v[10], entity2=v[7])
+        s.CoincidentConstraint(entity1=v[9], entity2=g[6])
+        s.undo()
+        s.HorizontalConstraint(entity=g[11])
+        s.CoincidentConstraint(entity1=v[9], entity2=g[5])
+        s.RadialDimension(curve=g[9], textPoint=(-47.8953018188477, 2.32995765090389),
+                          radius=1.5)
+        s.Line(point1=(-2.9, 16.0833785227168), point2=(-13.05, 1.98351409086672))
+        s.CoincidentConstraint(entity1=v[11], entity2=g[6], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[12], entity2=g[7], addUndoState=False)
+        s.Line(point1=(-13.05, 1.98351409086672), point2=(-3.14545822143555,
+                                                          1.98351409086672))
+        s.HorizontalConstraint(entity=g[14], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[13], entity2=g[7], addUndoState=False)
+        s.Line(point1=(-3.14545822143555, 1.98351409086672), point2=(-2.9,
+                                                                     16.0833785227168))
+        s.VerticalConstraint(entity=g[15])
+        s.ParallelConstraint(entity1=g[8], entity2=g[13])
+        s.DistanceDimension(entity1=g[8], entity2=g[13], textPoint=(-38.7507705688477,
+                                                                    8.99620405411793), value=10.0)
+        s.DistanceDimension(entity1=g[6], entity2=g[4], textPoint=(-21.8885097503662,
+                                                                   19.1573884681512), value=5.0)
+        s.DistanceDimension(entity1=g[7], entity2=g[3], textPoint=(-14.1059265136719,
+                                                                   -14.756366120601), value=5.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=206.006,
+                                                        farPlane=392.979, width=277.356, height=141.638,
+                                                        cameraPosition=(
+                                                            -223.479, -22.5644, -188.172),
+                                                        cameraUpVector=(-0.00936323, 0.985568,
+                                                                        0.169036),
+                                                        cameraTarget=(-52.2779, 41.0035, 62.8928))
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        p.Round(radius=1.5, edgeList=(e[1], e[3], e[6], e[15]))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=197.083,
+                                                        farPlane=401.805, width=431.21, height=220.207, cameraPosition=(
+                -257.292, -25.3422, -164.411), cameraTarget=(-86.0913, 38.2257,
+                                                             86.6535))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=129.946,
+                                                        farPlane=333.257, width=421.383, height=215.188,
+                                                        cameraPosition=(
+                                                            58.8716, 51.1625, -159.228),
+                                                        cameraUpVector=(-0.423055, 0.888077,
+                                                                        0.179862),
+                                                        cameraTarget=(-137.8, 25.6271, 79.6279))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=171.539,
+                                                        farPlane=374.105, width=361, height=184.353,
+                                                        cameraPosition=(-251.518,
+                                                                        113.68, -121.967),
+                                                        cameraUpVector=(0.437801, 0.803897, 0.402605),
+                                                        cameraTarget=(-65.0888, 24.7964, 109.825))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[26], point2=v1[23], point3=v1[35],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[6], point2=v2[9], point3=v2[32],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[35], point2=v1[36], point3=v1[34],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=164.479,
+                                                        farPlane=381.099, width=491.89, height=251.817, cameraPosition=(
+                -280.22, 109.848, -100.351), cameraTarget=(-93.7911, 20.9651, 131.441))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Triangles left bottom pointy 15 distance between holes
+    if sheet_version == 72:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.885,
+                                                        farPlane=406.578, width=276.959, height=141.435,
+                                                        cameraPosition=(
+                                                            -266.189, 181.18, 216.022),
+                                                        cameraUpVector=(0.529688, 0.664582,
+                                                                        -0.527031),
+                                                        cameraTarget=(-49.1057, 32.9081, 50.8724))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.ConstructionLine(point1=(-50.0, 13.05), angle=0.0)
+        s.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s.ConstructionLine(point1=(-50.0, -10.15), angle=0.0)
+        s.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s.Line(point1=(-47.85, -10.15), point2=(-29.7359466552734, 13.05))
+        s.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[5], entity2=g[6], addUndoState=False)
+        s.setAsConstruction(objectList=(g[8],))
+        s.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s.AngularDimension(line1=g[8], line2=g[5], textPoint=(-46.8576240539551,
+                                                              2.91244231823742), value=30.0)
+        s.ArcByCenterEnds(center=(-50.0, 4.98351409086673), point1=(-50.0,
+                                                                    -3.68908663803473),
+                          point2=(-46.4, -3.91461709275183),
+                          direction=COUNTERCLOCKWISE)
+        s.CoincidentConstraint(entity1=v[8], entity2=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[7], entity2=g[8], addUndoState=False)
+        s.TangentConstraint(entity1=g[9], entity2=g[8])
+        s.Line(point1=(-50.0, -3.68908663803473), point2=(-50.75, 10.15))
+        s.Line(point1=(-50.75, 10.15), point2=(-35.6477850323028, 12.4970781582659))
+        s.Line(point1=(-35.6477850323028, 12.4970781582659), point2=(-40.6, 0.0))
+        s.CoincidentConstraint(entity1=v[10], entity2=v[7])
+        s.CoincidentConstraint(entity1=v[9], entity2=g[6])
+        s.undo()
+        s.HorizontalConstraint(entity=g[11])
+        s.CoincidentConstraint(entity1=v[9], entity2=g[5])
+        s.RadialDimension(curve=g[9], textPoint=(-47.8953018188477, 2.32995765090389),
+                          radius=1.5)
+        s.Line(point1=(-2.9, 16.0833785227168), point2=(-13.05, 1.98351409086672))
+        s.CoincidentConstraint(entity1=v[11], entity2=g[6], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[12], entity2=g[7], addUndoState=False)
+        s.Line(point1=(-13.05, 1.98351409086672), point2=(-3.14545822143555,
+                                                          1.98351409086672))
+        s.HorizontalConstraint(entity=g[14], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[13], entity2=g[7], addUndoState=False)
+        s.Line(point1=(-3.14545822143555, 1.98351409086672), point2=(-2.9,
+                                                                     16.0833785227168))
+        s.VerticalConstraint(entity=g[15])
+        s.ParallelConstraint(entity1=g[8], entity2=g[13])
+        s.DistanceDimension(entity1=g[8], entity2=g[13], textPoint=(-38.7507705688477,
+                                                                    8.99620405411793), value=15.0)
+        s.DistanceDimension(entity1=g[6], entity2=g[4], textPoint=(-21.8885097503662,
+                                                                   19.1573884681512), value=5.0)
+        s.DistanceDimension(entity1=g[7], entity2=g[3], textPoint=(-14.1059265136719,
+                                                                   -14.756366120601), value=5.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=206.006,
+                                                        farPlane=392.979, width=277.356, height=141.638,
+                                                        cameraPosition=(
+                                                            -223.479, -22.5644, -188.172),
+                                                        cameraUpVector=(-0.00936323, 0.985568,
+                                                                        0.169036),
+                                                        cameraTarget=(-52.2779, 41.0035, 62.8928))
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        p.Round(radius=1.5, edgeList=(e[1], e[3], e[6], e[15]))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=197.083,
+                                                        farPlane=401.805, width=431.21, height=220.207,
+                                                        cameraPosition=(
+                                                            -257.292, -25.3422, -164.411),
+                                                        cameraTarget=(-86.0913, 38.2257,
+                                                                      86.6535))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=129.946,
+                                                        farPlane=333.257, width=421.383, height=215.188,
+                                                        cameraPosition=(
+                                                            58.8716, 51.1625, -159.228),
+                                                        cameraUpVector=(-0.423055, 0.888077,
+                                                                        0.179862),
+                                                        cameraTarget=(-137.8, 25.6271, 79.6279))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=171.539,
+                                                        farPlane=374.105, width=361, height=184.353,
+                                                        cameraPosition=(-251.518,
+                                                                        113.68, -121.967),
+                                                        cameraUpVector=(0.437801, 0.803897, 0.402605),
+                                                        cameraTarget=(-65.0888, 24.7964, 109.825))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[26], point2=v1[23], point3=v1[35],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[6], point2=v2[9], point3=v2[32],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[35], point2=v1[36], point3=v1[34],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=164.479,
+                                                        farPlane=381.099, width=491.89, height=251.817,
+                                                        cameraPosition=(
+                                                            -280.22, 109.848, -100.351),
+                                                        cameraTarget=(-93.7911, 20.9651, 131.441))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    # Triangles left bottom pointy 20 distance between holes
+    if sheet_version == 73:
+        p1 = mdb.models['Model-1'].parts['Sheet']
+        session.viewports['Viewport: 1'].setValues(displayedObject=p1)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=OFF)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=ON)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=214.885,
+                                                        farPlane=406.578, width=276.959, height=141.435,
+                                                        cameraPosition=(
+                                                            -266.189, 181.18, 216.022),
+                                                        cameraUpVector=(0.529688, 0.664582,
+                                                                        -0.527031),
+                                                        cameraTarget=(-49.1057, 32.9081, 50.8724))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f, e = p.faces, p.edges
+        t = p.MakeSketchTransform(sketchPlane=f[2], sketchUpEdge=e[7],
+                                  sketchPlaneSide=SIDE1, sketchOrientation=RIGHT, origin=(-19.178251,
+                                                                                          32.517638, 50.0))
+        s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
+                                                    sheetSize=232.31, gridSpacing=5.8, transform=t)
+        g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
+        s.setPrimaryObject(option=SUPERIMPOSE)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.projectReferencesOntoSketch(sketch=s, filter=COPLANAR_EDGES)
+        s.ConstructionLine(point1=(-50.0, 13.05), angle=0.0)
+        s.HorizontalConstraint(entity=g[6], addUndoState=False)
+        s.ConstructionLine(point1=(-50.0, -10.15), angle=0.0)
+        s.HorizontalConstraint(entity=g[7], addUndoState=False)
+        s.Line(point1=(-47.85, -10.15), point2=(-29.7359466552734, 13.05))
+        s.CoincidentConstraint(entity1=v[4], entity2=g[7], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[5], entity2=g[6], addUndoState=False)
+        s.setAsConstruction(objectList=(g[8],))
+        s.CoincidentConstraint(entity1=v[4], entity2=g[5])
+        s.AngularDimension(line1=g[8], line2=g[5], textPoint=(-46.8576240539551,
+                                                              2.91244231823742), value=30.0)
+        s.ArcByCenterEnds(center=(-50.0, 4.98351409086673), point1=(-50.0,
+                                                                    -3.68908663803473),
+                          point2=(-46.4, -3.91461709275183),
+                          direction=COUNTERCLOCKWISE)
+        s.CoincidentConstraint(entity1=v[8], entity2=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[6], entity2=g[5], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[7], entity2=g[8], addUndoState=False)
+        s.TangentConstraint(entity1=g[9], entity2=g[8])
+        s.Line(point1=(-50.0, -3.68908663803473), point2=(-50.75, 10.15))
+        s.Line(point1=(-50.75, 10.15), point2=(-35.6477850323028, 12.4970781582659))
+        s.Line(point1=(-35.6477850323028, 12.4970781582659), point2=(-40.6, 0.0))
+        s.CoincidentConstraint(entity1=v[10], entity2=v[7])
+        s.CoincidentConstraint(entity1=v[9], entity2=g[6])
+        s.undo()
+        s.HorizontalConstraint(entity=g[11])
+        s.CoincidentConstraint(entity1=v[9], entity2=g[5])
+        s.RadialDimension(curve=g[9], textPoint=(-47.8953018188477, 2.32995765090389),
+                          radius=1.5)
+        s.Line(point1=(-2.9, 16.0833785227168), point2=(-13.05, 1.98351409086672))
+        s.CoincidentConstraint(entity1=v[11], entity2=g[6], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[12], entity2=g[7], addUndoState=False)
+        s.Line(point1=(-13.05, 1.98351409086672), point2=(-3.14545822143555,
+                                                          1.98351409086672))
+        s.HorizontalConstraint(entity=g[14], addUndoState=False)
+        s.CoincidentConstraint(entity1=v[13], entity2=g[7], addUndoState=False)
+        s.Line(point1=(-3.14545822143555, 1.98351409086672), point2=(-2.9,
+                                                                     16.0833785227168))
+        s.VerticalConstraint(entity=g[15])
+        s.ParallelConstraint(entity1=g[8], entity2=g[13])
+        s.DistanceDimension(entity1=g[8], entity2=g[13], textPoint=(-38.7507705688477,
+                                                                    8.99620405411793), value=20.0)
+        s.DistanceDimension(entity1=g[6], entity2=g[4], textPoint=(-21.8885097503662,
+                                                                   19.1573884681512), value=5.0)
+        s.DistanceDimension(entity1=g[7], entity2=g[3], textPoint=(-14.1059265136719,
+                                                                   -14.756366120601), value=5.0)
+        p = mdb.models['Model-1'].parts['Sheet']
+        f1, e1 = p.faces, p.edges
+        p.CutExtrude(sketchPlane=f1[2], sketchUpEdge=e1[7], sketchPlaneSide=SIDE1,
+                     sketchOrientation=RIGHT, sketch=s, flipExtrudeDirection=OFF)
+        s.unsetPrimaryObject()
+        del mdb.models['Model-1'].sketches['__profile__']
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=206.006,
+                                                        farPlane=392.979, width=277.356, height=141.638,
+                                                        cameraPosition=(
+                                                            -223.479, -22.5644, -188.172),
+                                                        cameraUpVector=(-0.00936323, 0.985568,
+                                                                        0.169036),
+                                                        cameraTarget=(-52.2779, 41.0035, 62.8928))
+        p = mdb.models['Model-1'].parts['Sheet']
+        e = p.edges
+        p.Round(radius=1.5, edgeList=(e[1], e[3], e[6], e[15]))
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=197.083,
+                                                        farPlane=401.805, width=431.21, height=220.207,
+                                                        cameraPosition=(
+                                                            -257.292, -25.3422, -164.411),
+                                                        cameraTarget=(-86.0913, 38.2257,
+                                                                      86.6535))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        cells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        p.Set(cells=cells, name='Set-Sheet')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=129.946,
+                                                        farPlane=333.257, width=421.383, height=215.188,
+                                                        cameraPosition=(
+                                                            58.8716, 51.1625, -159.228),
+                                                        cameraUpVector=(-0.423055, 0.888077,
+                                                                        0.179862),
+                                                        cameraTarget=(-137.8, 25.6271, 79.6279))
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#10000 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Xmin')
+        p = mdb.models['Model-1'].parts['Sheet']
+        f = p.faces
+        faces = f.getSequenceFromMask(mask=('[#400400 ]',), )
+        p.Set(faces=faces, name='Set-Sheet-Zmin')
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=171.539,
+                                                        farPlane=374.105, width=361, height=184.353,
+                                                        cameraPosition=(-251.518,
+                                                                        113.68, -121.967),
+                                                        cameraUpVector=(0.437801, 0.803897, 0.402605),
+                                                        cameraTarget=(-65.0888, 24.7964, 109.825))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[26], point2=v1[23], point3=v1[35],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v2, e, d2 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v2[6], point2=v2[9], point3=v2[32],
+                                          cells=pickedCells)
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedCells = c.getSequenceFromMask(mask=('[#1 ]',), )
+        v1, e1, d1 = p.vertices, p.edges, p.datums
+        p.PartitionCellByPlaneThreePoints(point1=v1[35], point2=v1[36], point3=v1[34],
+                                          cells=pickedCells)
+        session.viewports['Viewport: 1'].partDisplay.setValues(mesh=ON)
+        session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+            meshTechnique=ON)
+        session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+            referenceRepresentation=OFF)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.seedPart(size=smallest_element_length, deviationFactor=0.1, minSizeFactor=0.1)
+        session.viewports['Viewport: 1'].view.setValues(nearPlane=164.479,
+                                                        farPlane=381.099, width=491.89, height=251.817,
+                                                        cameraPosition=(
+                                                            -280.22, 109.848, -100.351),
+                                                        cameraTarget=(-93.7911, 20.9651, 131.441))
+        p = mdb.models['Model-1'].parts['Sheet']
+        c = p.cells
+        pickedRegions = c.getSequenceFromMask(mask=('[#f ]',), )
+        p.setMeshControls(regions=pickedRegions, technique=SWEEP)
+        p = mdb.models['Model-1'].parts['Sheet']
+        p.generateMesh()
+
+    #########################################################################################
+    #########################################################################################
+    #########################################################################################
 
     # Section assgnemnet using set-sheet
     if sheet_material == 1:
@@ -1279,7 +4382,7 @@ def step_setup():
         mdb.models['Model-1'].XsymmBC(name='BC-indentX', createStepName='Initial',
                                       region=region, localCsys=None)
 
-    if indenter_version == 2:
+    if indenter_version == 2 or indenter_version == 3 or indenter_version == 4:
         a = mdb.models['Model-1'].rootAssembly
         region = a.instances['Indenter-1'].sets['Set-Indenter-RP']
         mdb.models['Model-1'].ZsymmBC(name='BC-indentZ', createStepName='Initial',
@@ -1331,14 +4434,14 @@ def step_setup():
         region = a.instances['Indenter-1'].sets['Set-Indenter']
         mdb.models['Model-1'].Velocity(name='Predefined Field-indent-Vel',
                                        region=region, field='', distributionType=MAGNITUDE,
-                                       velocity2=-10000.0, omega=0.0)
+                                       velocity2=-indenter_velocity, omega=0.0)
 
-    if indenter_version == 2:
+    if indenter_version == 2 or indenter_version == 3 or indenter_version == 4:  # LL
         a = mdb.models['Model-1'].rootAssembly
         region = a.instances['Indenter-1'].sets['Set-Indenter-RP']
         mdb.models['Model-1'].Velocity(name='Predefined Field-indent-Vel',
                                        region=region, field='', distributionType=MAGNITUDE,
-                                       velocity2=-10000.0, omega=0.0)
+                                       velocity2=-indenter_velocity, omega=0.0)
 
     a = mdb.models['Model-1'].rootAssembly
     region = a.instances['Indenter-1'].sets['Set-Indenter']
@@ -1389,6 +4492,44 @@ def step_setup():
                                                region=regionDef, sectionPoints=DEFAULT,
                                                rebar=EXCLUDE)
 
+    # Reference Point Weight ONLY FOR INDENTER 3 & 4 LL
+
+    if indenter_version == 3 or indenter_version == 4:
+        a = mdb.models['Model-1'].rootAssembly
+        region = a.instances['Indenter-1'].sets['Set-Indenter-RP']
+        mdb.models['Model-1'].rootAssembly.engineeringFeatures.PointMassInertia(
+            name='Indenter_Weight', region=region, mass=indenter_weight, alpha=0.0,
+            composite=0.0)
+
+    # Simulation stopping condition
+    mdb.models['Model-1'].OperatorFilter(name='Stop', operation=MAX, limit=0.0,
+                                         halt=ON)
+    regionDef = mdb.models['Model-1'].rootAssembly.allInstances['Indenter-1'].sets['Set-Indenter-RP']
+    mdb.models['Model-1'].HistoryOutputRequest(name='H-Output-Stop',
+                                               createStepName='Step-1', variables=('V2',), timeInterval=1e-05,
+                                               region=regionDef, filter='Stop', sectionPoints=DEFAULT, rebar=EXCLUDE)
+
+    # BC Clamping
+    a = mdb.models['Model-1'].rootAssembly
+    session.viewports['Viewport: 1'].setValues(displayedObject=a)
+    session.viewports['Viewport: 1'].assemblyDisplay.setValues(loads=ON, bcs=ON,
+                                                               predefinedFields=ON, connectors=ON,
+                                                               optimizationTasks=OFF,
+                                                               geometricRestrictions=OFF, stopConditions=OFF)
+    a = mdb.models['Model-1'].rootAssembly
+    region = a.instances['Sheet-1'].sets['Set-Sheet-Clamp']
+    mdb.models['Model-1'].DisplacementBC(name='BC-Clamping',
+                                         createStepName='Initial', region=region, u1=SET, u2=SET, u3=SET,
+                                         ur1=SET, ur2=SET, ur3=SET, amplitude=UNSET, distributionType=UNIFORM,
+                                         fieldName='', localCsys=None)
+
+    #Mass scaling
+    regionDef0 = mdb.models['Model-1'].rootAssembly.allInstances['Sheet-1'].sets['Set-Sheet']
+    mdb.models['Model-1'].steps['Step-1'].setValues(massScaling=((SEMI_AUTOMATIC,
+                                                                  regionDef0, AT_BEGINNING, mass_scaling, 0.0, None, 0, 0, 0.0,
+                                                                  0.0, 0, None),),
+                                                    improvedDtMethod=ON)
+
 
 def create_job():
     a = mdb.models['Model-1'].rootAssembly
@@ -1402,6 +4543,123 @@ def create_job():
             numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=nr_cpus)
     mdb.jobs[job_name].writeInput(consistencyChecking=OFF)
 
+def presentation():
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=1457.42,
+                                                    farPlane=1640.79, width=291.979, height=149.475, cameraPosition=(
+            -1215.66, 3.56255, 1071.26), cameraUpVector=(0.0190083, 0.999817,
+                                                         -0.00282508), cameraTarget=(-9.04179, -22.2482, 54.8758),
+                                                    viewOffsetX=3.09156, viewOffsetY=31.5478)
+    session.viewports['Viewport: 1'].enableMultipleColors()
+    session.viewports['Viewport: 1'].setColor(initialColor='#BDBDBD')
+    cmap = session.viewports['Viewport: 1'].colorMappings['Part instance']
+    session.viewports['Viewport: 1'].setColor(colorMapping=cmap)
+    session.viewports['Viewport: 1'].disableMultipleColors()
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=1445.4,
+                                                    farPlane=1638.05, width=241.122, height=123.439, cameraPosition=(
+            -1276.5, 168.611, 972.289), cameraUpVector=(0.0983282, 0.991009,
+                                                        -0.090812), cameraTarget=(-8.40379, -41.0737, 57.0996),
+                                                    viewOffsetX=-46.5337, viewOffsetY=23.1475)
+    session.viewports['Viewport: 1'].enableMultipleColors()
+    session.viewports['Viewport: 1'].setColor(initialColor='#BDBDBD')
+    cmap = session.viewports['Viewport: 1'].colorMappings['Part instance']
+    cmap.updateOverrides(overrides={'Sheet-1': (True, '#FF7F00', 'Default',
+                                                '#FF7F00')})
+    session.viewports['Viewport: 1'].setColor(colorMapping=cmap)
+    session.viewports['Viewport: 1'].disableMultipleColors()
+    session.viewports['Viewport: 1'].enableMultipleColors()
+    session.viewports['Viewport: 1'].setColor(initialColor='#BDBDBD')
+    cmap = session.viewports['Viewport: 1'].colorMappings['Part instance']
+    session.viewports['Viewport: 1'].setColor(colorMapping=cmap)
+    session.viewports['Viewport: 1'].disableMultipleColors()
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=1150.05,
+                                                    farPlane=1356.13, width=356.195, height=182.349, cameraPosition=(
+            -1091.34, 169.251, 732.495), cameraUpVector=(0.150274, 0.985014,
+                                                         -0.084737), cameraTarget=(237.666, -102.822, -73.3155),
+                                                    viewOffsetX=-5.49109, viewOffsetY=24.8711)
+    session.viewports['Viewport: 1'].view.setProjection(projection=PERSPECTIVE)
+    session.viewports['Viewport: 1'].view.setProjection(projection=PARALLEL)
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=1136.38,
+                                                    farPlane=1349.88, width=314.549, height=161.029, cameraPosition=(
+            -1054.82, 308.034, 719.19), cameraUpVector=(0.210103, 0.966401,
+                                                        -0.14814), cameraTarget=(-36.2156, -13.8298, 64.148))
+    session.viewports['Viewport: 1'].view.setProjection(projection=PERSPECTIVE)
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=1124.43,
+                                                    farPlane=1354.64, width=339.827, height=173.97, cameraPosition=(
+            -816.185, 440.999, 924.405), cameraUpVector=(0.242329, 0.931987,
+                                                         -0.269631), cameraTarget=(-31.7776, -13.2684, 59.1896),
+                                                    viewOffsetX=13.4118, viewOffsetY=14.5709)
+    session.graphicsOptions.setValues(backgroundStyle=SOLID,
+                                      backgroundColor='#FFFFFF')
+    session.viewports['Viewport: 1'].view.setValues(session.views['Iso'])
+    session.viewports['Viewport: 1'].view.setValues(session.views['Iso'])
+    session.viewports['Viewport: 1'].view.setValues(session.views['Iso'])
+    session.viewports['Viewport: 1'].view.rotate(xAngle=0, yAngle=90, zAngle=0,
+                                                 mode=MODEL)
+    session.viewports['Viewport: 1'].view.setProjection(projection=PARALLEL)
+    session.viewports['Viewport: 1'].view.setProjection(projection=PERSPECTIVE)
+    session.viewports['Viewport: 1'].view.setProjection(projection=PARALLEL)
+    session.View(name='User-1', nearPlane=207.27, farPlane=621.8, width=164.94,
+                 height=208.54, projection=PARALLEL, cameraPosition=(-288.09, 247.02,
+                                                                     290.58),
+                 cameraUpVector=(0.57735, 0.57735, -0.57735), cameraTarget=(
+            -48.752, 7.6868, 51.248), viewOffsetX=0, viewOffsetY=0, autoFit=OFF)
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=292.165,
+                                                    farPlane=534.028, width=298.963, height=153.05, cameraPosition=(
+            -295.949, 215.53, 314.207), cameraTarget=(-56.6157, -23.8027, 74.8737))
+    session.View(name='User-2', nearPlane=292.16, farPlane=534.03, width=298.96,
+                 height=153.05, projection=PARALLEL, cameraPosition=(-295.95, 215.53,
+                                                                     314.21),
+                 cameraUpVector=(0.57735, 0.57735, -0.57735), cameraTarget=(
+            -56.616, -23.803, 74.874), viewOffsetX=0, viewOffsetY=0, autoFit=OFF)
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=296.889,
+                                                    farPlane=529.303, width=234.37, height=119.983, cameraPosition=(
+            -284.162, 283.884, 257.639), cameraTarget=(-44.8293, 44.5512, 18.3064))
+    session.View(name='User-3', nearPlane=296.89, farPlane=529.3, width=234.37,
+                 height=119.98, projection=PARALLEL, cameraPosition=(-284.16, 283.88,
+                                                                     257.64),
+                 cameraUpVector=(0.57735, 0.57735, -0.57735), cameraTarget=(
+            -44.829, 44.551, 18.306), viewOffsetX=0, viewOffsetY=0, autoFit=OFF)
+    session.viewports['Viewport: 1'].partDisplay.setValues(mesh=OFF)
+    session.viewports['Viewport: 1'].partDisplay.meshOptions.setValues(
+        meshTechnique=OFF)
+    session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
+        referenceRepresentation=ON)
+    p = mdb.models['Model-1'].parts['Sheet']
+    session.viewports['Viewport: 1'].setValues(displayedObject=p)
+    a = mdb.models['Model-1'].rootAssembly
+    session.viewports['Viewport: 1'].setValues(displayedObject=a)
+    session.viewports['Viewport: 1'].assemblyDisplay.setValues(loads=OFF, bcs=OFF,
+                                                               predefinedFields=OFF, connectors=OFF)
+    session.viewports['Viewport: 1'].assemblyDisplay.hideInstances(instances=(
+        'Support_bottom-1',))
+    session.viewports['Viewport: 1'].assemblyDisplay.hideInstances(instances=(
+        'Indenter-1',))
+    session.viewports['Viewport: 1'].view.setProjection(projection=PERSPECTIVE)
+    session.viewports['Viewport: 1'].view.setProjection(projection=PARALLEL)
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=334.913,
+                                                    farPlane=538.491, width=360.83, height=184.266, cameraPosition=(
+            -301.341, 216.637, 307.712), cameraTarget=(-62.0033, -22.6965,
+                                                       68.3799))
+    session.View(name='User-4', nearPlane=334.91, farPlane=538.49, width=360.83,
+                 height=184.27, projection=PARALLEL, cameraPosition=(-301.34, 216.64,
+                                                                     307.71),
+                 cameraUpVector=(0.57735, 0.57735, -0.57735), cameraTarget=(
+            -62.003, -22.697, 68.38), viewOffsetX=0, viewOffsetY=0, autoFit=OFF)
+    session.viewports['Viewport: 1'].view.setValues(nearPlane=262.226,
+                                                    farPlane=553.437, width=437.998, height=223.673, cameraPosition=(
+            -282.551, 248.778, 294.356), cameraTarget=(-43.2187, 9.44511, 55.0231))
+    a = mdb.models['Model-1'].rootAssembly
+    a.features['Support_top-1'].suppress()
+    a = mdb.models['Model-1'].rootAssembly
+    a.features['Indenter-1'].suppress()
+    a = mdb.models['Model-1'].rootAssembly
+    a.features['Support_bottom-1'].suppress()
+    session.viewports['Viewport: 1'].assemblyDisplay.setValues(loads=OFF, bcs=OFF,
+                                                               predefinedFields=OFF, connectors=OFF,
+                                                               adaptiveMeshConstraints=ON)
+    session.viewports['Viewport: 1'].assemblyDisplay.setValues(
+        adaptiveMeshConstraints=OFF)
+    session.viewports['Viewport: 1'].view.setValues(session.views['User-4'])
 
 def get_sheet_mass():
     # Get the part object
@@ -1417,7 +4675,6 @@ def get_sheet_mass():
     with open('massData.txt', 'a') as file:
         file.write(f"{job_name},{mass}\n")
 
-
 material_import()
 enableElementDelition()
 Indenter()
@@ -1427,6 +4684,7 @@ topSupport()
 assembly()
 step_setup()
 create_job()
+presentation()
 # get_sheet_mass()
 
 # mdb.jobs['Job-1'].submit(consistencyChecking=OFF)
