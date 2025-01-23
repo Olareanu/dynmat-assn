@@ -4,6 +4,8 @@ A repo for scripts made for the "Dynamic behaviour of Materials" final Project. 
 "Assessing Material Performance in Fuselage Impact". Abaqus CAE 2024 required for running the geometry generation,
 Abaqus 2023 or newer for running the input files.
 
+For access to compiled data contact Alexandru Olareanu
+
 ### Contributors:
 
 - Alexandru Olareanu
@@ -46,6 +48,7 @@ Abaqus 2023 or newer for running the input files.
 An entire assortment of Matlab scripts is the used for post-processing
 
 Useful euler commands and things to know:
+
 ```
 navigate to /cluster/scratch/yourKurzel
 module load abaqus/2023
